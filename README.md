@@ -1,10 +1,10 @@
-# Curalink — AI Medical Research Assistant
+# Curalink - AI Medical Research Assistant
 
 A full-stack MERN application that acts as a health research companion. It understands user context, retrieves high-quality medical research from multiple sources, reasons over it with an open-source LLM (Llama 3.3-70B via Groq), and delivers structured, source-backed answers.
 
 ---
 
-## 🧬 Architecture & AI Pipeline
+## Architecture & AI Pipeline
 
 ```
 User Query + Patient Context
@@ -54,7 +54,7 @@ User Query + Patient Context
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
@@ -71,7 +71,7 @@ User Query + Patient Context
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 curalink/
@@ -111,7 +111,7 @@ curalink/
 
 ---
 
-## 🚀 Local Setup
+## Local Setup
 
 ### Prerequisites
 - Node.js 18+
@@ -161,7 +161,7 @@ Open [http://localhost:5173](http://localhost:5173)
 
 ---
 
-## ☁️ Deployment
+## Deployment
 
 ### Backend → Render.com
 1. Push the `backend/` folder to GitHub
@@ -178,7 +178,7 @@ Open [http://localhost:5173](http://localhost:5173)
 
 ---
 
-## 🧪 Example Queries to Demo
+## Example Queries to Demo
 
 | Query | Disease | Notes |
 |-------|---------|-------|
@@ -190,7 +190,7 @@ Open [http://localhost:5173](http://localhost:5173)
 
 ---
 
-## 🔑 API Endpoints
+## API Endpoints
 
 ### `POST /api/chat`
 Main research pipeline endpoint.
@@ -239,7 +239,7 @@ Main research pipeline endpoint.
 
 ---
 
-## ⚙️ Design Decisions
+## Design Decisions
 
 ### LLM Choice: Groq (Llama 3.3-70B)
 - **Open-source model**: Llama 3.3 weights are fully open (Meta license)
