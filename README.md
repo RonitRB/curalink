@@ -61,7 +61,7 @@ User Query + Patient Context
 | Frontend | React + Vite |
 | Backend | Express.js + Node.js |
 | Database | MongoDB Atlas |
-| LLM | Groq API — `llama-3.3-70b-versatile` (open-source model) |
+| LLM | Groq API - `llama-3.3-70b-versatile` (open-source model) |
 | Publications | OpenAlex API + PubMed NCBI Entrez API |
 | Clinical Trials | ClinicalTrials.gov API v2 |
 | Frontend Deploy | Vercel |
