@@ -7,6 +7,35 @@ const EXAMPLE_QUERIES = [
   'Recent studies on heart disease',
 ];
 
+/* ── Icons ──────────────────────────────────────────────────── */
+function IconArrowUp() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18 }}>
+      <line x1="12" y1="19" x2="12" y2="5" />
+      <polyline points="5 12 12 5 19 12" />
+    </svg>
+  );
+}
+
+function IconSearch() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+}
+
+/* ── Form Label with dot ────────────────────────────────────── */
+function FieldLabel({ children }) {
+  return (
+    <label className="form-label">
+      <span className="form-label-dot" />
+      {children}
+    </label>
+  );
+}
+
 export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
   const [mode, setMode] = useState('structured');
   const [quickText, setQuickText] = useState('');
@@ -78,7 +107,7 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
         <form className="structured-form" onSubmit={handleStructuredSubmit}>
           <div className="form-row">
             <div className="form-field">
-              <label className="form-label">Patient Name</label>
+              <FieldLabel>Patient Name</FieldLabel>
               <input
                 id="input-patient-name"
                 className="form-input"
@@ -88,7 +117,7 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
               />
             </div>
             <div className="form-field">
-              <label className="form-label">Disease / Condition</label>
+              <FieldLabel>Disease / Condition</FieldLabel>
               <input
                 id="input-disease"
                 className="form-input"
@@ -98,9 +127,10 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
               />
             </div>
           </div>
+
           <div className="form-row">
             <div className="form-field" style={{ gridColumn: '1 / -1' }}>
-              <label className="form-label">Research Query *</label>
+              <FieldLabel>Research Query *</FieldLabel>
               <input
                 id="input-query"
                 className="form-input"
@@ -111,9 +141,10 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
               />
             </div>
           </div>
+
           <div className="form-row">
             <div className="form-field">
-              <label className="form-label">Location (for trial matching)</label>
+              <FieldLabel>Location (for trial matching)</FieldLabel>
               <input
                 id="input-location"
                 className="form-input"
@@ -129,7 +160,19 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
                 className="submit-btn"
                 disabled={isLoading || !form.query.trim()}
               >
-                {isLoading ? '⏳ Researching…' : '↗ Run Research'}
+                {isLoading ? (
+                  <>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 15, height: 15, animation: 'ringRotate 1s linear infinite' }}>
+                      <circle cx="12" cy="12" r="9" strokeDasharray="56" strokeDashoffset="14" />
+                    </svg>
+                    Researching…
+                  </>
+                ) : (
+                  <>
+                    <IconSearch />
+                    Run Research
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -141,14 +184,14 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
             className="quick-input"
             placeholder={
               sessionContext?.disease
-                ? `Ask a follow-up about ${sessionContext.disease}...`
+                ? `Ask a follow-up about ${sessionContext.disease}…`
                 : 'Ask anything, e.g. "Latest treatment for lung cancer"'
             }
             value={quickText}
             onChange={(e) => setQuickText(e.target.value)}
             onKeyDown={handleKeyDown}
             rows={1}
-            style={{ height: 44, lineHeight: '22px' }}
+            style={{ height: 46, lineHeight: '22px' }}
           />
           <button
             id="btn-send-quick"
@@ -157,7 +200,7 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
             disabled={isLoading || !quickText.trim()}
             title="Send"
           >
-            ↑
+            <IconArrowUp />
           </button>
         </form>
       )}
@@ -167,12 +210,12 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
         {EXAMPLE_QUERIES.slice(0, 2).map((q, i) => (
           <span key={i}>
             <span
-              style={{ color: 'var(--primary)', cursor: 'pointer', fontSize: 11 }}
+              style={{ color: 'var(--p)', cursor: 'pointer', fontSize: 11, fontWeight: 500 }}
               onClick={() => handleChipClick(q)}
             >
               "{q}"
             </span>
-            {i < 1 && <span> · </span>}
+            {i < 1 && <span style={{ color: 'var(--t4)' }}> · </span>}
           </span>
         ))}
       </div>

@@ -1,15 +1,49 @@
 import PublicationCard from './PublicationCard';
 import TrialCard from './TrialCard';
 
+/* ── Icons ──────────────────────────────────────────────────── */
+function IconDNA() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+      <path d="M12 2C6.5 5 6 9 6 12C6 15 6.5 19 12 22" />
+      <path d="M12 2C17.5 5 18 9 18 12C18 15 17.5 19 12 22" />
+      <path d="M6.5 7.5C8.5 7 11 6.8 13.5 7.5" />
+      <path d="M6.5 16.5C8.5 16 11 15.8 13.5 16.5" />
+    </svg>
+  );
+}
+
+function IconStar() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" style={{ width: 9, height: 9 }}>
+      <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
+    </svg>
+  );
+}
+
 function formatTime(dateStr) {
   const d = new Date(dateStr);
   return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
+/* ── SectionTitle helper ────────────────────────────────────── */
+function SectionTitle({ children }) {
+  return (
+    <div className="section-title">
+      <div className="section-dot" />
+      {children}
+      <div className="section-title-bar" />
+    </div>
+  );
+}
+
+/* ── Typing Indicator ───────────────────────────────────────── */
 export function TypingIndicator() {
   return (
     <div className="message-row ai">
-      <div className="message-avatar ai">🧬</div>
+      <div className="message-avatar ai">
+        <IconDNA />
+      </div>
       <div className="message-content">
         <div className="typing-indicator">
           <div className="typing-dots">
@@ -24,6 +58,7 @@ export function TypingIndicator() {
   );
 }
 
+/* ── User Message ───────────────────────────────────────────── */
 export function UserMessage({ content, timestamp }) {
   return (
     <div className="message-row user">
@@ -36,6 +71,7 @@ export function UserMessage({ content, timestamp }) {
   );
 }
 
+/* ── AI Message ─────────────────────────────────────────────── */
 export function AIMessage({ message }) {
   const { content, metadata, timestamp } = message;
   const llm = metadata?.llmResponse;
@@ -47,11 +83,11 @@ export function AIMessage({ message }) {
   if (!llm) {
     return (
       <div className="message-row ai">
-        <div className="message-avatar ai">🧬</div>
+        <div className="message-avatar ai"><IconDNA /></div>
         <div className="message-content">
           <div className="ai-response">
             <div className="ai-response-body">
-              <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.7 }}>{content}</p>
+              <p style={{ fontSize: 14.5, color: 'var(--t2)', lineHeight: 1.75 }}>{content}</p>
             </div>
           </div>
           {timestamp && <div className="message-time">{formatTime(timestamp)}</div>}
@@ -62,12 +98,16 @@ export function AIMessage({ message }) {
 
   return (
     <div className="message-row ai">
-      <div className="message-avatar ai">🧬</div>
+      <div className="message-avatar ai"><IconDNA /></div>
       <div className="message-content">
         <div className="ai-response">
           {/* Card header */}
           <div className="ai-response-header">
-            <span className="ai-response-badge">✦ Curalink Research</span>
+            <span className="ai-response-badge">
+              <span className="ai-response-badge-dot" />
+              <IconStar />
+              Curalink Research
+            </span>
             {expandedQuery && (
               <span className="ai-response-query">
                 {expandedQuery.length > 64
@@ -86,9 +126,7 @@ export function AIMessage({ message }) {
             {/* Condition Overview */}
             {llm.conditionOverview && (
               <div className="section-block">
-                <div className="section-title">
-                  Condition Overview
-                </div>
+                <SectionTitle>Condition Overview</SectionTitle>
                 <div className="condition-overview">{llm.conditionOverview}</div>
               </div>
             )}
@@ -96,7 +134,7 @@ export function AIMessage({ message }) {
             {/* Research Insights */}
             {llm.researchInsights?.length > 0 && (
               <div className="section-block">
-                <div className="section-title">Research Insights</div>
+                <SectionTitle>Research Insights</SectionTitle>
                 <div className="insights-list">
                   {llm.researchInsights.map((insight, i) => (
                     <div key={i} className="insight-item">
@@ -118,9 +156,7 @@ export function AIMessage({ message }) {
             {/* Publications */}
             {pubs.length > 0 && (
               <div className="section-block">
-                <div className="section-title">
-                  Source Publications ({pubs.length})
-                </div>
+                <SectionTitle>Source Publications ({pubs.length})</SectionTitle>
                 <div className="publications-grid">
                   {pubs.map((pub, i) => (
                     <PublicationCard key={pub.id || i} pub={pub} index={i} />
@@ -132,9 +168,9 @@ export function AIMessage({ message }) {
             {/* Clinical Trials */}
             {(llm.clinicalTrialsSummary || trials.length > 0) && (
               <div className="section-block">
-                <div className="section-title">
+                <SectionTitle>
                   Clinical Trials {trials.length > 0 && `(${trials.length})`}
-                </div>
+                </SectionTitle>
                 {llm.clinicalTrialsSummary && (
                   <div className="trials-summary">{llm.clinicalTrialsSummary}</div>
                 )}
@@ -151,7 +187,7 @@ export function AIMessage({ message }) {
             {/* Personalized Note */}
             {llm.personalizedNote && (
               <div className="section-block">
-                <div className="section-title">Personalized Note</div>
+                <SectionTitle>Personalized Note</SectionTitle>
                 <div className="personalized-note">{llm.personalizedNote}</div>
               </div>
             )}
@@ -159,7 +195,7 @@ export function AIMessage({ message }) {
             {/* Key Takeaways */}
             {llm.keyTakeaways?.length > 0 && (
               <div className="section-block">
-                <div className="section-title">Key Takeaways</div>
+                <SectionTitle>Key Takeaways</SectionTitle>
                 <div className="key-takeaways">
                   {llm.keyTakeaways.map((t, i) => (
                     <div key={i} className="takeaway-item">
