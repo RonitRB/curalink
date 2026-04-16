@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { sessionsAPI } from '../api';
 
-export default function SessionSidebar({ currentSessionId, onSelectSession, onNewChat, collapsed }) {
+export default function SessionSidebar({ currentSessionId, onSelectSession, onNewChat, open, isMobile }) {
   const [sessions, setSessions] = useState([]);
 
   const loadSessions = async () => {
@@ -35,8 +35,16 @@ export default function SessionSidebar({ currentSessionId, onSelectSession, onNe
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  // On desktop: sidebar pushes content (open/closed via width)
+  // On mobile: sidebar is a fixed drawer overlay
+  const sidebarClass = [
+    'sidebar',
+    isMobile ? 'sidebar-mobile' : 'sidebar-desktop',
+    open ? 'sidebar-open' : 'sidebar-closed',
+  ].join(' ');
+
   return (
-    <aside className={`sidebar${collapsed ? ' collapsed' : ''}`}>
+    <aside className={sidebarClass}>
       <div className="sidebar-header">
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">🧬</div>
@@ -54,9 +62,7 @@ export default function SessionSidebar({ currentSessionId, onSelectSession, onNe
       <div className="sidebar-sessions">
         {sessions.length === 0 ? (
           <div className="sidebar-empty">
-            No sessions yet.
-            <br />
-            Start a research query below.
+            No sessions yet.<br />Start a research query below.
           </div>
         ) : (
           <>

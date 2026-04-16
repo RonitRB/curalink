@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import SessionSidebar from './components/SessionSidebar';
 import InputPanel from './components/InputPanel';
 import { UserMessage, AIMessage, TypingIndicator } from './components/MessageCard';
@@ -12,8 +12,21 @@ const WELCOME_QUERIES = [
   'Recent studies on heart disease',
 ];
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return isMobile;
+}
+
 export default function App() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const isMobile = useIsMobile();
+  // Desktop: sidebar open by default. Mobile: closed by default.
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,17 +35,27 @@ export default function App() {
 
   const messagesEndRef = useRef(null);
 
+  // Keep sidebar default in sync when screen size changes
+  useEffect(() => {
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => { scrollToBottom(); }, [messages, isLoading]);
 
+  const closeSidebarOnMobile = useCallback(() => {
+    if (isMobile) setSidebarOpen(false);
+  }, [isMobile]);
+
   const handleNewChat = () => {
     setCurrentSessionId(null);
     setMessages([]);
     setError(null);
     setSessionContext({ patientName: '', disease: '', location: '' });
+    closeSidebarOnMobile();
   };
 
   const handleSelectSession = async (sessionId) => {
@@ -53,6 +76,7 @@ export default function App() {
       }));
       setMessages(reconstructed);
       setError(null);
+      closeSidebarOnMobile();
     } catch (err) {
       setError('Failed to load session.');
     }
@@ -106,21 +130,32 @@ export default function App() {
 
   return (
     <div className="app-layout">
+      {/* Mobile overlay backdrop */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       <SessionSidebar
         currentSessionId={currentSessionId}
         onSelectSession={handleSelectSession}
         onNewChat={handleNewChat}
-        collapsed={sidebarCollapsed}
+        open={sidebarOpen}
+        isMobile={isMobile}
       />
 
       <div className="main-area">
-        {/* ── Header ── */}
+        {/* Header */}
         <header className="header">
           <button
             className="header-toggle"
-            onClick={() => setSidebarCollapsed((p) => !p)}
+            onClick={() => setSidebarOpen((p) => !p)}
             title="Toggle sidebar"
             id="btn-toggle-sidebar"
+            aria-label="Toggle sidebar"
           >
             ☰
           </button>
@@ -160,7 +195,7 @@ export default function App() {
           )}
         </header>
 
-        {/* ── Chat Area ── */}
+        {/* Chat Area */}
         <div className="chat-container" id="chat-container">
           {!hasMessages ? (
             <div className="chat-welcome">
@@ -212,7 +247,7 @@ export default function App() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* ── Input ── */}
+        {/* Input */}
         <InputPanel
           onSubmit={handleSubmit}
           isLoading={isLoading}

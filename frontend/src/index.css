@@ -105,18 +105,48 @@ a:hover { opacity: 0.75; }
   background: var(--surface);
 }
 
-/* ── Sidebar ─────────────────────────────────────────────── */
+/* ── Sidebar — shared base ───────────────────────────────── */
 .sidebar {
-  width: 264px;
-  min-width: 264px;
   background: var(--surface-low);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: width var(--t-slow) var(--ease), min-width var(--t-slow) var(--ease);
   flex-shrink: 0;
+  z-index: 200;
 }
-.sidebar.collapsed { width: 0; min-width: 0; }
+
+/* Desktop: sidebar pushes content via width */
+.sidebar-desktop {
+  position: relative;
+  width: 264px;
+  min-width: 264px;
+  transition: width var(--t-slow) var(--ease), min-width var(--t-slow) var(--ease);
+}
+.sidebar-desktop.sidebar-closed { width: 0; min-width: 0; }
+.sidebar-desktop.sidebar-open  { width: 264px; min-width: 264px; }
+
+/* Mobile: sidebar is a fixed drawer that slides in over content */
+.sidebar-mobile {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  transition: transform var(--t-slow) var(--ease);
+  box-shadow: var(--shadow-lg);
+}
+.sidebar-mobile.sidebar-closed { transform: translateX(-100%); }
+.sidebar-mobile.sidebar-open   { transform: translateX(0); }
+
+/* Backdrop overlay for mobile drawer */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 199;
+  animation: fadeIn 0.2s var(--ease) both;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .sidebar-header {
   padding: 18px 16px 14px;
@@ -915,4 +945,176 @@ a:hover { opacity: 0.75; }
 @keyframes typingBounce {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
   30%            { transform: translateY(-5px); opacity: 1; }
+}
+
+/* ── Mobile Responsive ───────────────────────────────────────
+   Breakpoints:
+   - sm  : max 767px  (phones)
+   - md  : max 1023px (small tablets / landscape phones)
+   ─────────────────────────────────────────────────────────── */
+
+/* -- Tablet adjustments (768px - 1023px) -- */
+@media (max-width: 1023px) {
+  .sidebar-desktop { width: 220px; min-width: 220px; }
+  .sidebar-desktop.sidebar-open { width: 220px; min-width: 220px; }
+  .chat-container { padding: 20px 16px 14px; }
+  .message-row { max-width: 100%; }
+  .publications-grid { grid-template-columns: 1fr; }
+  .input-panel { padding: 12px 16px 16px; }
+}
+
+/* -- Phone adjustments (max 767px) -- */
+@media (max-width: 767px) {
+
+  /* Body — allow scroll on mobile for tall content */
+  body { overflow: hidden; }
+  #root { height: 100dvh; }  /* dynamic viewport height for mobile browsers */
+
+  /* Layout — full width since sidebar is an overlay */
+  .app-layout { position: relative; }
+  .main-area { width: 100%; min-width: 0; }
+
+  /* Header */
+  .header {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+  .header-brand-name { font-size: 14px; }
+  .header-brand-tagline { display: none; }   /* hide on small screens */
+  .header-brand-icon { width: 28px; height: 28px; font-size: 14px; }
+  .header-sep { display: none; }
+  .header-context {
+    display: none;                            /* context shown in chat, not header */
+  }
+
+  /* Chat container */
+  .chat-container {
+    padding: 16px 12px 10px;
+    gap: 14px;
+  }
+
+  /* Welcome screen */
+  .chat-welcome {
+    padding: 32px 12px 24px;
+  }
+  .chat-welcome-icon {
+    width: 52px;
+    height: 52px;
+    font-size: 22px;
+    margin-bottom: 18px;
+  }
+  .chat-welcome h1 {
+    font-size: 20px;
+    letter-spacing: -0.4px;
+    margin-bottom: 10px;
+  }
+  .chat-welcome p {
+    font-size: 13.5px;
+    margin-bottom: 22px;
+  }
+  .welcome-chips { gap: 7px; }
+  .welcome-chip {
+    padding: 7px 13px;
+    font-size: 12.5px;
+  }
+
+  /* Messages */
+  .message-row { gap: 8px; max-width: 100%; }
+  .message-avatar { width: 26px; height: 26px; font-size: 11px; }
+  .user-bubble {
+    max-width: 88%;
+    font-size: 14px;
+    padding: 10px 13px;
+  }
+
+  /* AI response card */
+  .ai-response-header {
+    padding: 10px 13px;
+    gap: 6px;
+  }
+  .ai-response-query { max-width: 160px; font-size: 11px; }
+  .ai-response-stats { display: none; }       /* save space on mobile */
+  .ai-response-body { padding: 14px 13px; }
+
+  /* Sections */
+  .section-title { font-size: 10px; margin-bottom: 8px; }
+  .condition-overview { font-size: 13.5px; padding: 12px 13px; }
+
+  /* Publications — always single column on mobile */
+  .publications-grid { grid-template-columns: 1fr; gap: 7px; }
+  .pub-card { padding: 11px; }
+  .pub-title { font-size: 12px; }
+  .pub-abstract { font-size: 11px; }
+
+  /* Insights */
+  .insight-item { padding: 10px 12px; }
+  .insight-text { font-size: 12.5px; }
+  .insight-detail { font-size: 11.5px; }
+
+  /* Trials */
+  .trial-card { padding: 11px 12px; }
+  .trial-title { font-size: 12.5px; }
+  .trial-summary { font-size: 11px; }
+  .trial-meta { gap: 8px; }
+  .trial-meta-item { font-size: 10.5px; }
+
+  /* Takeaways */
+  .takeaway-item { font-size: 13px; }
+
+  /* Typing indicator */
+  .typing-indicator { padding: 9px 13px; }
+  .typing-text { font-size: 12px; }
+
+  /* ── Input Panel ── */
+  .input-panel {
+    padding: 10px 12px;
+    /* Safe area for iPhones with home bar */
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  /* Tab switcher — full width on mobile */
+  .input-tabs { width: 100%; margin-bottom: 10px; }
+  .input-tab { flex: 1; text-align: center; padding: 7px 8px; font-size: 12px; }
+
+  /* Form rows — always stack on mobile */
+  .form-row { grid-template-columns: 1fr !important; gap: 8px; }
+  .structured-form { gap: 8px; }
+  .form-input { font-size: 16px; padding: 10px 12px; } /* 16px prevents iOS zoom */
+  .form-label { font-size: 10px; }
+
+  /* Submit button — full width */
+  .submit-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+    font-size: 14px;
+  }
+  .form-field[style*="flex-end"] { padding-top: 4px !important; }
+
+  /* Quick chat */
+  .quick-input {
+    font-size: 16px; /* prevents iOS zoom on focus */
+    padding: 10px 13px;
+  }
+  .send-btn { width: 44px; height: 44px; font-size: 18px; }
+
+  .input-hint { font-size: 10.5px; }
+
+  /* Sidebar on mobile */
+  .sidebar-logo-text { font-size: 14px; }
+  .new-chat-btn { padding: 10px 12px; font-size: 13px; }
+  .session-disease { font-size: 12px; }
+  .session-patient { font-size: 10.5px; }
+  .session-date { font-size: 9.5px; }
+
+  /* Error bubble */
+  .error-bubble { max-width: 92%; font-size: 13px; }
+}
+
+/* -- Very small phones (max 380px) -- */
+@media (max-width: 380px) {
+  .chat-welcome h1 { font-size: 18px; }
+  .welcome-chip { font-size: 11.5px; padding: 6px 11px; }
+  .header-brand-name { font-size: 13px; }
+  .user-bubble { font-size: 13.5px; }
 }
