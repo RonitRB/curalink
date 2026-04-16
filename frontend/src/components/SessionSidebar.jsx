@@ -29,8 +29,7 @@ export default function SessionSidebar({ currentSessionId, onSelectSession, onNe
   const formatDate = (dateStr) => {
     const d = new Date(dateStr);
     const now = new Date();
-    const diffMs = now - d;
-    const diffH = diffMs / (1000 * 60 * 60);
+    const diffH = (now - d) / (1000 * 60 * 60);
     if (diffH < 1) return 'Just now';
     if (diffH < 24) return `${Math.floor(diffH)}h ago`;
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -41,17 +40,23 @@ export default function SessionSidebar({ currentSessionId, onSelectSession, onNe
       <div className="sidebar-header">
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">🧬</div>
-          <span className="sidebar-logo-text">Curalink</span>
+          <div>
+            <div className="sidebar-logo-text">Curalink</div>
+            <div className="sidebar-logo-sub">AI Research</div>
+          </div>
         </div>
-        <button className="new-chat-btn" onClick={onNewChat}>
-          <span>✦</span> New Research Session
+        <button className="new-chat-btn" onClick={onNewChat} id="btn-new-session">
+          <span className="new-chat-btn-icon">+</span>
+          New Research Session
         </button>
       </div>
 
       <div className="sidebar-sessions">
         {sessions.length === 0 ? (
           <div className="sidebar-empty">
-            No sessions yet.<br />Start a research query below.
+            No sessions yet.
+            <br />
+            Start a research query below.
           </div>
         ) : (
           <>
@@ -62,10 +67,12 @@ export default function SessionSidebar({ currentSessionId, onSelectSession, onNe
                 className={`session-item${s.sessionId === currentSessionId ? ' active' : ''}`}
                 onClick={() => onSelectSession(s.sessionId)}
               >
-                <span style={{ fontSize: 16, marginTop: 1 }}>🔬</span>
+                <span className="session-icon">🔬</span>
                 <div className="session-item-content">
                   <div className="session-disease">{s.disease || 'General Query'}</div>
-                  {s.patientName && <div className="session-patient">👤 {s.patientName}</div>}
+                  {s.patientName && (
+                    <div className="session-patient">{s.patientName}</div>
+                  )}
                   <div className="session-date">{formatDate(s.updatedAt)}</div>
                 </div>
                 <button

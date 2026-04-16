@@ -31,7 +31,7 @@ export function UserMessage({ content, timestamp }) {
         <div className="user-bubble">{content}</div>
         {timestamp && <div className="message-time">{formatTime(timestamp)}</div>}
       </div>
-      <div className="message-avatar user-av">👤</div>
+      <div className="message-avatar user-av">U</div>
     </div>
   );
 }
@@ -45,14 +45,13 @@ export function AIMessage({ message }) {
   const expandedQuery = metadata?.expandedQuery;
 
   if (!llm) {
-    // Plain text fallback
     return (
       <div className="message-row ai">
         <div className="message-avatar ai">🧬</div>
         <div className="message-content">
           <div className="ai-response">
             <div className="ai-response-body">
-              <p style={{ fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.7 }}>{content}</p>
+              <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.7 }}>{content}</p>
             </div>
           </div>
           {timestamp && <div className="message-time">{formatTime(timestamp)}</div>}
@@ -66,12 +65,14 @@ export function AIMessage({ message }) {
       <div className="message-avatar ai">🧬</div>
       <div className="message-content">
         <div className="ai-response">
-          {/* Header */}
+          {/* Card header */}
           <div className="ai-response-header">
             <span className="ai-response-badge">✦ Curalink Research</span>
             {expandedQuery && (
               <span className="ai-response-query">
-                🔍 {expandedQuery.length > 60 ? expandedQuery.slice(0, 60) + '…' : expandedQuery}
+                {expandedQuery.length > 64
+                  ? expandedQuery.slice(0, 64) + '…'
+                  : expandedQuery}
               </span>
             )}
             {stats && (
@@ -86,7 +87,6 @@ export function AIMessage({ message }) {
             {llm.conditionOverview && (
               <div className="section-block">
                 <div className="section-title">
-                  <span className="section-title-icon">🩺</span>
                   Condition Overview
                 </div>
                 <div className="condition-overview">{llm.conditionOverview}</div>
@@ -94,18 +94,15 @@ export function AIMessage({ message }) {
             )}
 
             {/* Research Insights */}
-            {llm.researchInsights && llm.researchInsights.length > 0 && (
+            {llm.researchInsights?.length > 0 && (
               <div className="section-block">
-                <div className="section-title">
-                  <span className="section-title-icon">🔬</span>
-                  Research Insights
-                </div>
+                <div className="section-title">Research Insights</div>
                 <div className="insights-list">
                   {llm.researchInsights.map((insight, i) => (
                     <div key={i} className="insight-item">
                       <div className="insight-top">
                         {insight.citation && (
-                          <span className="insight-citation">{insight.citation}</span>
+                          <span className="insight-citation">[{insight.citation}]</span>
                         )}
                         <span className="insight-text">{insight.insight}</span>
                       </div>
@@ -122,7 +119,6 @@ export function AIMessage({ message }) {
             {pubs.length > 0 && (
               <div className="section-block">
                 <div className="section-title">
-                  <span className="section-title-icon">📚</span>
                   Source Publications ({pubs.length})
                 </div>
                 <div className="publications-grid">
@@ -137,7 +133,6 @@ export function AIMessage({ message }) {
             {(llm.clinicalTrialsSummary || trials.length > 0) && (
               <div className="section-block">
                 <div className="section-title">
-                  <span className="section-title-icon">🧪</span>
                   Clinical Trials {trials.length > 0 && `(${trials.length})`}
                 </div>
                 {llm.clinicalTrialsSummary && (
@@ -156,21 +151,15 @@ export function AIMessage({ message }) {
             {/* Personalized Note */}
             {llm.personalizedNote && (
               <div className="section-block">
-                <div className="section-title">
-                  <span className="section-title-icon">💡</span>
-                  Personalized Note
-                </div>
+                <div className="section-title">Personalized Note</div>
                 <div className="personalized-note">{llm.personalizedNote}</div>
               </div>
             )}
 
             {/* Key Takeaways */}
-            {llm.keyTakeaways && llm.keyTakeaways.length > 0 && (
+            {llm.keyTakeaways?.length > 0 && (
               <div className="section-block">
-                <div className="section-title">
-                  <span className="section-title-icon">⚡</span>
-                  Key Takeaways
-                </div>
+                <div className="section-title">Key Takeaways</div>
                 <div className="key-takeaways">
                   {llm.keyTakeaways.map((t, i) => (
                     <div key={i} className="takeaway-item">

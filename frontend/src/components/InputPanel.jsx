@@ -8,10 +8,8 @@ const EXAMPLE_QUERIES = [
 ];
 
 export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
-  const [mode, setMode] = useState('structured'); // 'structured' | 'quick'
+  const [mode, setMode] = useState('structured');
   const [quickText, setQuickText] = useState('');
-
-  // Structured form state
   const [form, setForm] = useState({
     patientName: sessionContext?.patientName || '',
     disease: sessionContext?.disease || '',
@@ -19,9 +17,8 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
     location: sessionContext?.location || '',
   });
 
-  const handleFormChange = (field, value) => {
+  const handleFormChange = (field, value) =>
     setForm((prev) => ({ ...prev, [field]: value }));
-  };
 
   const handleStructuredSubmit = (e) => {
     e.preventDefault();
@@ -55,27 +52,25 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
   };
 
   const handleChipClick = (query) => {
-    if (mode === 'structured') {
-      setForm((prev) => ({ ...prev, query }));
-    } else {
-      setQuickText(query);
-    }
+    if (mode === 'structured') setForm((prev) => ({ ...prev, query }));
+    else setQuickText(query);
   };
 
   return (
     <div className="input-panel">
+      {/* Mode tabs */}
       <div className="input-tabs">
         <button
           className={`input-tab${mode === 'structured' ? ' active' : ''}`}
           onClick={() => setMode('structured')}
         >
-          🗂 Structured Input
+          Structured Input
         </button>
         <button
           className={`input-tab${mode === 'quick' ? ' active' : ''}`}
           onClick={() => setMode('quick')}
         >
-          💬 Quick Chat
+          Quick Chat
         </button>
       </div>
 
@@ -93,7 +88,7 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
               />
             </div>
             <div className="form-field">
-              <label className="form-label">Disease / Condition *</label>
+              <label className="form-label">Disease / Condition</label>
               <input
                 id="input-disease"
                 className="form-input"
@@ -109,7 +104,7 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
               <input
                 id="input-query"
                 className="form-input"
-                placeholder="e.g. Deep Brain Stimulation outcomes"
+                placeholder="e.g. Deep Brain Stimulation outcomes in late-stage Parkinson's"
                 value={form.query}
                 onChange={(e) => handleFormChange('query', e.target.value)}
                 required
@@ -134,7 +129,7 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
                 className="submit-btn"
                 disabled={isLoading || !form.query.trim()}
               >
-                {isLoading ? '⏳ Researching…' : '🚀 Run Research'}
+                {isLoading ? '⏳ Researching…' : '↗ Run Research'}
               </button>
             </div>
           </div>
@@ -146,14 +141,14 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
             className="quick-input"
             placeholder={
               sessionContext?.disease
-                ? `Ask a follow-up about ${sessionContext.disease}…`
-                : 'Ask anything — e.g. "Latest treatment for lung cancer"'
+                ? `Ask a follow-up about ${sessionContext.disease}...`
+                : 'Ask anything, e.g. "Latest treatment for lung cancer"'
             }
             value={quickText}
             onChange={(e) => setQuickText(e.target.value)}
             onKeyDown={handleKeyDown}
             rows={1}
-            style={{ height: 46, lineHeight: '22px' }}
+            style={{ height: 44, lineHeight: '22px' }}
           />
           <button
             id="btn-send-quick"
@@ -168,10 +163,11 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
       )}
 
       <div className="input-hint">
-        Try: {EXAMPLE_QUERIES.slice(0, 2).map((q, i) => (
+        Try:{' '}
+        {EXAMPLE_QUERIES.slice(0, 2).map((q, i) => (
           <span key={i}>
             <span
-              style={{ color: 'var(--accent-primary)', cursor: 'pointer', fontSize: 11 }}
+              style={{ color: 'var(--primary)', cursor: 'pointer', fontSize: 11 }}
               onClick={() => handleChipClick(q)}
             >
               "{q}"
