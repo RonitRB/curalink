@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { sessionsAPI } from '../api';
-import { useAuth } from '../context/AuthContext';
 
 /* ── SVG Icons ─────────────────────────────────────────────── */
 function IconDNA() {
@@ -23,18 +22,17 @@ function IconPlus() {
   );
 }
 
-function IconLogout() {
+function IconFlask() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <polyline points="16 17 21 12 16 7" />
-      <line x1="21" y1="12" x2="9" y2="12" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13, opacity: 0.5 }}>
+      <path d="M9 3h6v8l3 9H6l3-9V3z" />
+      <line x1="9" y1="3" x2="15" y2="3" />
+      <line x1="6" y1="17" x2="18" y2="17" />
     </svg>
   );
 }
 
 export default function SessionSidebar({ currentSessionId, onSelectSession, onNewChat, open, isMobile }) {
-  const { user, logout } = useAuth();
   const [sessions, setSessions] = useState([]);
 
   const loadSessions = async () => {
@@ -67,10 +65,6 @@ export default function SessionSidebar({ currentSessionId, onSelectSession, onNe
     if (diffH < 24) return `${Math.floor(diffH)}h ago`;
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
-
-  const initials = user?.name
-    ? user.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
-    : '?';
 
   const sidebarClass = [
     'sidebar',
@@ -135,23 +129,6 @@ export default function SessionSidebar({ currentSessionId, onSelectSession, onNe
             ))}
           </>
         )}
-      </div>
-
-      {/* User footer */}
-      <div className="sidebar-user-footer">
-        <div className="sidebar-user-av">{initials}</div>
-        <div className="sidebar-user-info">
-          <div className="sidebar-user-name">{user?.name}</div>
-          <div className="sidebar-user-email">{user?.email}</div>
-        </div>
-        <button
-          className="sidebar-logout-btn"
-          onClick={logout}
-          id="btn-sidebar-logout"
-          title="Sign out"
-        >
-          <IconLogout />
-        </button>
       </div>
     </aside>
   );

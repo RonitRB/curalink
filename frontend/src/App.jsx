@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { AuthProvider, useAuth } from './context/AuthContext';
 import SessionSidebar from './components/SessionSidebar';
 import InputPanel from './components/InputPanel';
-import AuthPage from './components/AuthPage';
 import { UserMessage, AIMessage, TypingIndicator } from './components/MessageCard';
 import { chatAPI, sessionsAPI } from './api';
 import './index.css';
@@ -38,6 +36,15 @@ function IconMenu() {
   );
 }
 
+function IconArrowUp() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="19" x2="12" y2="5" />
+      <polyline points="5 12 12 5 19 12" />
+    </svg>
+  );
+}
+
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   useEffect(() => {
@@ -49,27 +56,7 @@ function useIsMobile() {
   return isMobile;
 }
 
-/* ── Initials avatar ────────────────────────────────────────── */
-function UserAvatar({ name, onClick }) {
-  const initials = name
-    ? name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
-    : '?';
-  return (
-    <button
-      className="header-user-avatar"
-      onClick={onClick}
-      id="btn-user-menu"
-      title={`Signed in as ${name}`}
-      aria-label="User menu"
-    >
-      {initials}
-    </button>
-  );
-}
-
-/* ── Main app (authenticated) ───────────────────────────────── */
-function MainApp() {
-  const { user, logout } = useAuth();
+export default function App() {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [currentSessionId, setCurrentSessionId] = useState(null);
@@ -77,20 +64,18 @@ function MainApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [sessionContext, setSessionContext] = useState({ patientName: '', disease: '', location: '' });
-  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const messagesEndRef = useRef(null);
 
-  useEffect(() => { setSidebarOpen(!isMobile); }, [isMobile]);
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isLoading]);
-
-  // Close user menu on outside click
   useEffect(() => {
-    if (!showUserMenu) return;
-    const handler = () => setShowUserMenu(false);
-    document.addEventListener('click', handler);
-    return () => document.removeEventListener('click', handler);
-  }, [showUserMenu]);
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => { scrollToBottom(); }, [messages, isLoading]);
 
   const closeSidebarOnMobile = useCallback(() => {
     if (isMobile) setSidebarOpen(false);
@@ -123,7 +108,7 @@ function MainApp() {
       setMessages(reconstructed);
       setError(null);
       closeSidebarOnMobile();
-    } catch {
+    } catch (err) {
       setError('Failed to load session.');
     }
   };
@@ -249,41 +234,13 @@ function MainApp() {
             <div className="status-dot" />
             <span>Live</span>
           </div>
-
-          {/* User avatar + dropdown */}
-          <div className="header-user-wrap" style={{ position: 'relative' }}>
-            <UserAvatar
-              name={user?.name}
-              onClick={(e) => { e.stopPropagation(); setShowUserMenu((p) => !p); }}
-            />
-            {showUserMenu && (
-              <div className="user-dropdown" onClick={(e) => e.stopPropagation()}>
-                <div className="user-dropdown-info">
-                  <div className="user-dropdown-name">{user?.name}</div>
-                  <div className="user-dropdown-email">{user?.email}</div>
-                </div>
-                <div className="user-dropdown-divider" />
-                <button
-                  className="user-dropdown-logout"
-                  onClick={logout}
-                  id="btn-logout"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                  </svg>
-                  Sign Out
-                </button>
-              </div>
-            )}
-          </div>
         </header>
 
         {/* Chat Area */}
         <div className="chat-container" id="chat-container">
           {!hasMessages ? (
             <div className="chat-welcome">
+              {/* Animated icon */}
               <div className="welcome-icon-wrap">
                 <div className="welcome-icon-halo" />
                 <div className="welcome-icon-ring" />
@@ -297,8 +254,8 @@ function MainApp() {
                 <span className="gradient-text">Powered by AI</span>
               </h1>
               <p>
-                Welcome, <strong style={{ color: 'var(--p-bright)' }}>{user?.name?.split(' ')[0]}</strong>. Enter your medical query and patient context below.
-                Curalink retrieves research from PubMed, OpenAlex, and ClinicalTrials.gov, then reasons
+                Enter your medical query and patient context below. Curalink retrieves
+                research from PubMed, OpenAlex, and ClinicalTrials.gov, then reasons
                 over it with Llama 3 to deliver structured, source-backed insights.
               </p>
               <div className="welcome-chips">
@@ -354,19 +311,5 @@ function MainApp() {
         />
       </div>
     </div>
-  );
-}
-
-/* ── Root: gate on auth ─────────────────────────────────────── */
-function AppGate() {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <MainApp /> : <AuthPage />;
-}
-
-export default function App() {
-  return (
-    <AuthProvider>
-      <AppGate />
-    </AuthProvider>
   );
 }
