@@ -40,6 +40,7 @@ const messageSchema = new mongoose.Schema({
 
 const sessionSchema = new mongoose.Schema({
   sessionId: { type: String, required: true, unique: true, index: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   patientName: { type: String, default: '' },
   disease: { type: String, default: '' },
   location: { type: String, default: '' },

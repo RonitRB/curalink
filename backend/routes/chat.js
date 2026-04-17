@@ -2,8 +2,12 @@ import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import Session from '../models/Session.js';
 import { runResearchPipeline } from '../services/pipelineService.js';
+import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
+
+// All chat routes require authentication
+router.use(authMiddleware);
 
 /**
  * POST /api/chat
@@ -26,17 +30,18 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Message is required.' });
     }
 
-    // Resolve or create session
+    // Resolve or create session — always scoped to logged-in user
     let session;
     const sid = sessionId || uuidv4();
 
     if (sessionId) {
-      session = await Session.findOne({ sessionId });
+      session = await Session.findOne({ sessionId, userId: req.userId });
     }
 
     if (!session) {
       session = new Session({
         sessionId: sid,
+        userId: req.userId,
         patientName: patientName || '',
         disease: disease || '',
         location: location || '',
