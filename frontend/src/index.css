@@ -1678,6 +1678,51 @@ a:hover { color: var(--p-bright); }
 }
 .auth-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0 16px;
+  color: var(--t4);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--b1);
+}
+.auth-divider span {
+  padding: 0 12px;
+}
+
+.auth-google-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--s-high);
+  border: 1px solid var(--b2);
+  border-radius: var(--r-lg);
+  color: var(--t1);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all var(--t-fast) var(--ease);
+}
+.auth-google-btn:hover:not(:disabled) {
+  background: var(--s-hover);
+  border-color: var(--b3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.auth-google-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .auth-switch {
   text-align: center; margin-top: 20px;
   font-size: 13px; color: var(--t3);
