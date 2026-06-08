@@ -98,6 +98,16 @@ export function AuthProvider({ children }) {
     resetAuth();
   }, [resetAuth]);
 
+  const loginWithGoogle = useCallback(async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+    if (error) throw error;
+  }, []);
+
   const value = {
     user,
     token,
@@ -106,6 +116,7 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    loginWithGoogle,
   };
 
   return (
