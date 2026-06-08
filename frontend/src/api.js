@@ -18,24 +18,11 @@ export function clearAuthToken() {
   delete api.defaults.headers.common['Authorization'];
 }
 
-// Auto-set token from localStorage on load
-const savedToken = localStorage.getItem('curalink_token');
-if (savedToken) {
-  setAuthToken(savedToken);
-}
-
-// ── Request interceptor: ensure auth + security headers ────────
+// ── Request interceptor: ensure security headers ────────
 api.interceptors.request.use(
   (config) => {
     // Always add X-Requested-With to identify AJAX requests (CSRF-like protection)
     config.headers['X-Requested-With'] = 'XMLHttpRequest';
-
-    // Ensure the token from localStorage is always up to date
-    const token = localStorage.getItem('curalink_token');
-    if (token && !config.headers['Authorization']) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-
     return config;
   },
   (err) => Promise.reject(err)
@@ -46,22 +33,13 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('curalink_token');
-      localStorage.removeItem('curalink_user');
       clearAuthToken();
-      // Dispatch event so AuthContext can react
+      // Dispatch event so AuthContext can sign out from Supabase
       window.dispatchEvent(new Event('auth:logout'));
     }
     return Promise.reject(err);
   }
 );
-
-// ── Auth API ──────────────────────────────────────────────────
-export const authAPI = {
-  register: (data) => api.post('/auth/register', data),
-  login: (data) => api.post('/auth/login', data),
-  me: () => api.get('/auth/me'),
-};
 
 // ── Chat API ──────────────────────────────────────────────────
 export const chatAPI = {

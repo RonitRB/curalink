@@ -1,22 +1,20 @@
 import express from 'express';
 import cors from 'cors';
-import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import chatRoutes from './routes/chat.js';
 import sessionRoutes from './routes/sessions.js';
-import authRoutes from './routes/auth.js';
 import bookmarkRoutes from './routes/bookmarks.js';
 import sanitize from './middleware/sanitize.js';
-import { authLimiter, apiLimiter, chatLimiter } from './middleware/rateLimit.js';
+import { apiLimiter, chatLimiter } from './middleware/rateLimit.js';
 
 dotenv.config();
 
 // ── Startup validation — fail fast if critical env vars are missing ──
-const REQUIRED_ENV = ['MONGODB_URI', 'JWT_SECRET', 'GROQ_API_KEY'];
+const REQUIRED_ENV = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'GROQ_API_KEY'];
 const missing = REQUIRED_ENV.filter((key) => !process.env[key]);
 if (missing.length > 0) {
   console.error(`❌ FATAL: Missing required environment variables: ${missing.join(', ')}`);
-  console.error('   Copy .env.example to .env and fill in all required values.');
+  console.error('   Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.');
   process.exit(1);
 }
 
@@ -68,21 +66,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// ── MongoDB connection ────────────────────────────────────────
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('✅ MongoDB connected');
-  } catch (err) {
-    console.error('❌ MongoDB connection failed:', err.message);
-    process.exit(1);
-  }
-};
-
-connectDB();
-
 // ── Routes (with rate limiters) ───────────────────────────────
-app.use('/api/auth', authLimiter, authRoutes);
+// Auth routes removed, handled directly by Supabase on the frontend
 app.use('/api/chat', apiLimiter, chatLimiter, chatRoutes);
 app.use('/api/sessions', apiLimiter, sessionRoutes);
 app.use('/api/bookmarks', apiLimiter, bookmarkRoutes);
@@ -92,7 +77,7 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    service: 'Curalink API',
+    service: 'Curalink API (Supabase)',
     version: '2.1.0',
   });
 });

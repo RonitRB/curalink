@@ -1,17 +1,37 @@
 import express from 'express';
-import Bookmark from '../models/Bookmark.js';
-import Session from '../models/Session.js';
 import auth from '../middleware/auth.js';
+import { createSupabaseClient } from '../services/supabase.js';
 
 const router = express.Router();
 
 /** GET /api/bookmarks — list user's bookmarks */
 router.get('/', auth, async (req, res) => {
   try {
-    const bookmarks = await Bookmark.find({ userId: req.user.id })
-      .sort({ createdAt: -1 })
+    const supabase = createSupabaseClient(req.userJwt);
+    const { data: bookmarks, error } = await supabase
+      .from('bookmarks')
+      .select('*')
+      .eq('user_id', req.user.id)
+      .order('created_at', { ascending: false })
       .limit(50);
-    res.json(bookmarks);
+
+    if (error) throw error;
+
+    // Format for frontend compatibility
+    const formatted = bookmarks.map(b => ({
+      _id: b.id, // Frontend expects _id for mongodb compatibility
+      id: b.id,
+      userId: b.user_id,
+      sessionId: b.session_id,
+      messageIndex: b.message_index,
+      title: b.title,
+      disease: b.disease,
+      preview: b.preview,
+      createdAt: b.created_at,
+      updatedAt: b.updated_at,
+    }));
+
+    res.json(formatted);
   } catch (err) {
     console.error('[Bookmarks] List error:', err.message);
     res.status(500).json({ error: 'Failed to load bookmarks.' });
@@ -27,42 +47,67 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ error: 'sessionId and messageIndex are required.' });
     }
 
-    // Validate messageIndex is a non-negative integer
     const idx = parseInt(messageIndex, 10);
     if (isNaN(idx) || idx < 0) {
       return res.status(400).json({ error: 'messageIndex must be a non-negative integer.' });
     }
 
-    // ── SECURITY: Verify the session belongs to the authenticated user ──
-    const session = await Session.findOne({
-      sessionId,
-      userId: req.user.id,
-    });
+    const supabase = createSupabaseClient(req.userJwt);
 
+    // ── SECURITY: Verify the session belongs to the authenticated user ──
+    const { data: session, error: sessionError } = await supabase
+      .from('sessions')
+      .select('messages')
+      .eq('session_id', sessionId)
+      .eq('user_id', req.user.id)
+      .single();
+
+    if (sessionError && sessionError.code !== 'PGRST116') throw sessionError;
     if (!session) {
       return res.status(404).json({ error: 'Session not found or access denied.' });
     }
 
     // Verify messageIndex is within bounds
-    if (idx >= session.messages.length) {
+    const messages = session.messages || [];
+    if (idx >= messages.length) {
       return res.status(400).json({ error: 'Invalid messageIndex — out of range.' });
     }
 
-    const bookmark = new Bookmark({
-      userId: req.user.id,
-      sessionId,
-      messageIndex: idx,
+    const newBookmark = {
+      user_id: req.user.id,
+      session_id: sessionId,
+      message_index: idx,
       title: (title || 'Untitled Research').slice(0, 200),
       disease: (disease || '').slice(0, 200),
       preview: (preview || '').slice(0, 500),
-    });
+    };
 
-    await bookmark.save();
-    res.status(201).json(bookmark);
-  } catch (err) {
-    if (err.code === 11000) {
-      return res.status(409).json({ error: 'This response is already bookmarked.' });
+    const { data, error } = await supabase
+      .from('bookmarks')
+      .insert([newBookmark])
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') { // Postgres unique violation code
+        return res.status(409).json({ error: 'This response is already bookmarked.' });
+      }
+      throw error;
     }
+
+    res.status(201).json({
+      _id: data.id,
+      id: data.id,
+      userId: data.user_id,
+      sessionId: data.session_id,
+      messageIndex: data.message_index,
+      title: data.title,
+      disease: data.disease,
+      preview: data.preview,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    });
+  } catch (err) {
     console.error('[Bookmarks] Create error:', err.message);
     res.status(500).json({ error: 'Failed to create bookmark.' });
   }
@@ -71,8 +116,15 @@ router.post('/', auth, async (req, res) => {
 /** DELETE /api/bookmarks/:id — remove a bookmark */
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const result = await Bookmark.deleteOne({ _id: req.params.id, userId: req.user.id });
-    if (result.deletedCount === 0) {
+    const supabase = createSupabaseClient(req.userJwt);
+    const { count, error } = await supabase
+      .from('bookmarks')
+      .delete({ count: 'exact' })
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id);
+
+    if (error) throw error;
+    if (count === 0) {
       return res.status(404).json({ error: 'Bookmark not found.' });
     }
     res.json({ success: true });

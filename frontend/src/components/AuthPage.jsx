@@ -66,7 +66,7 @@ export default function AuthPage() {
         await login(form.email.trim(), form.password);
       }
     } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Something went wrong.');
+      setError(err.message || 'Something went wrong.');
     } finally {
       setIsLoading(false);
     }

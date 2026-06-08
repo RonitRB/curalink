@@ -1,36 +1,18 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import Session from '../models/Session.js';
 import { runResearchPipeline } from '../services/pipelineService.js';
 import auth from '../middleware/auth.js';
+import { createSupabaseClient } from '../services/supabase.js';
 
 const router = express.Router();
 
-// Input constraints
 const MAX_MESSAGE_LENGTH = 5000;
 const MAX_FIELD_LENGTH = 200;
 
-/**
- * POST /api/chat
- * Main endpoint — runs the full AI research pipeline and returns structured results.
- * Requires authentication. Sessions are scoped to the authenticated user.
- *
- * Body:
- * {
- *   message: string,          // User's question (max 5000 chars)
- *   sessionId?: string,       // Existing session ID for multi-turn
- *   patientName?: string,     // Patient name context
- *   disease?: string,         // Primary disease/condition
- *   location?: string,        // Patient location
- *   age?: string,             // Patient age
- *   gender?: string           // Patient gender
- * }
- */
 router.post('/', auth, async (req, res) => {
   try {
     const { message, sessionId, patientName, disease, location, age, gender } = req.body;
 
-    // ── Input validation ──────────────────────────────────────
     if (!message || typeof message !== 'string' || !message.trim()) {
       return res.status(400).json({ error: 'Message is required.' });
     }
@@ -39,7 +21,6 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ error: `Message must be under ${MAX_MESSAGE_LENGTH} characters.` });
     }
 
-    // Validate optional string fields
     const safeStr = (val, maxLen = MAX_FIELD_LENGTH) => {
       if (val === undefined || val === null) return '';
       if (typeof val !== 'string') return '';
@@ -52,7 +33,7 @@ router.post('/', auth, async (req, res) => {
     const safeAge = safeStr(age, 10);
     const safeGender = safeStr(gender, 20);
 
-    // ── Resolve or create session (user-scoped) ───────────────
+    const supabase = createSupabaseClient(req.userJwt);
     let session;
     const sid = sessionId || uuidv4();
 
@@ -60,43 +41,51 @@ router.post('/', auth, async (req, res) => {
       if (typeof sessionId !== 'string' || sessionId.length > 100) {
         return res.status(400).json({ error: 'Invalid session ID.' });
       }
-      session = await Session.findOne({ sessionId, userId: req.user.id });
+      const { data, error } = await supabase
+        .from('sessions')
+        .select('*')
+        .eq('session_id', sessionId)
+        .eq('user_id', req.user.id)
+        .single();
+        
+      if (error && error.code !== 'PGRST116') throw error;
+      session = data;
     }
 
     if (!session) {
-      session = new Session({
-        sessionId: sid,
-        userId: req.user.id,
-        patientName: safeName,
+      session = {
+        session_id: sid,
+        user_id: req.user.id,
+        patient_name: safeName,
         disease: safeDisease,
         location: safeLocation,
         age: safeAge,
         gender: safeGender,
         messages: [],
-      });
+      };
+    } else {
+      if (patientName !== undefined) session.patient_name = safeName;
+      if (disease !== undefined) session.disease = safeDisease;
+      if (location !== undefined) session.location = safeLocation;
+      if (age !== undefined) session.age = safeAge;
+      if (gender !== undefined) session.gender = safeGender;
     }
 
-    // Update context if new values provided
-    if (patientName !== undefined) session.patientName = safeName;
-    if (disease !== undefined) session.disease = safeDisease;
-    if (location !== undefined) session.location = safeLocation;
-    if (age !== undefined) session.age = safeAge;
-    if (gender !== undefined) session.gender = safeGender;
+    if (!Array.isArray(session.messages)) {
+      session.messages = [];
+    }
 
-    // Store user message
-    session.messages.push({ role: 'user', content: message.trim() });
+    session.messages.push({ role: 'user', content: message.trim(), timestamp: new Date().toISOString() });
 
-    // Run the AI pipeline
     const result = await runResearchPipeline(message.trim(), {
       disease: session.disease,
-      patientName: session.patientName,
+      patientName: session.patient_name,
       location: session.location,
       age: session.age,
       gender: session.gender,
       conversationHistory: session.messages.slice(-8),
     });
 
-    // Store assistant response with full metadata
     session.messages.push({
       role: 'assistant',
       content: result.llmResponse?.conditionOverview || 'Research completed.',
@@ -107,16 +96,22 @@ router.post('/', auth, async (req, res) => {
         llmResponse: result.llmResponse,
         stats: result.stats,
       },
+      timestamp: new Date().toISOString()
     });
 
-    session.updatedAt = new Date();
-    await session.save();
+    session.updated_at = new Date().toISOString();
+
+    const { error: upsertError } = await supabase
+      .from('sessions')
+      .upsert([session], { onConflict: 'session_id' });
+
+    if (upsertError) throw upsertError;
 
     res.json({
       sessionId: sid,
       result,
       sessionContext: {
-        patientName: session.patientName,
+        patientName: session.patient_name,
         disease: session.disease,
         location: session.location,
         age: session.age,
