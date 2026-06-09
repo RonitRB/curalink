@@ -8,9 +8,9 @@
 **Goal**: Repository initialized, dependencies installed, environment configured.
 
 - [ ] Initialize backend with `npm init` and set `"type": "module"`
-- [ ] Install backend dependencies: express, mongoose, jsonwebtoken, bcryptjs, cors, dotenv, axios, uuid, xml2js
+- [ ] Install backend dependencies: express, @supabase/supabase-js, cors, dotenv, axios, uuid, xml2js
 - [ ] Initialize frontend with Vite + React template
-- [ ] Install frontend dependencies: axios, react-router-dom
+- [ ] Install frontend dependencies: axios, react-router-dom, @supabase/supabase-js
 - [ ] Create `.env.example` files for both backend and frontend
 - [ ] Set up `.gitignore` (node_modules, .env, dist)
 - [ ] Create folder structure:
@@ -18,14 +18,14 @@
   backend/
   ├── server.js
   ├── middleware/ (auth.js, rateLimit.js, sanitize.js)
-  ├── models/ (User.js, Session.js, Bookmark.js)
-  ├── routes/ (auth.js, chat.js, sessions.js, bookmarks.js)
-  └── services/ (llmService.js, queryExpander.js, pubmedService.js, openAlexService.js, clinicalTrialsService.js, ranker.js, pipelineService.js)
+  ├── routes/ (chat.js, sessions.js, bookmarks.js)
+  └── services/ (supabase.js, llmService.js, queryExpander.js, pubmedService.js, openAlexService.js, clinicalTrialsService.js, ranker.js, pipelineService.js)
 
   frontend/src/
   ├── main.jsx
   ├── App.jsx
   ├── api.js
+  ├── supabase.js
   ├── index.css
   ├── contexts/ (AuthContext.jsx)
   └── components/ (AuthPage, SessionSidebar, InputPanel, MessageCard, PublicationCard, TrialCard, AnalyticsDashboard, ExportButton, PrivacyPolicy, CookieConsent, Accessibility)
@@ -36,31 +36,30 @@
 ---
 
 ### Phase 2: Database Schema
-**Goal**: MongoDB models defined with proper indexes and validation.
+**Goal**: Supabase PostgreSQL tables defined with RLS.
 
-- [ ] Define `User` model with email uniqueness, password hashing (bcrypt, 12 rounds), and `toJSON` sanitization
-- [ ] Define `Session` model with embedded `Message`, `Publication`, and `Trial` subdocuments
-- [ ] Define `Bookmark` model with compound unique index (userId + sessionId + messageIndex)
-- [ ] Add indexes: `users.email`, `sessions.sessionId`, `sessions.userId`, `bookmarks.userId + createdAt`
-- [ ] Test MongoDB Atlas connection
+- [ ] Create `sessions` table in Supabase
+- [ ] Create `bookmarks` table in Supabase
+- [ ] Enable Row Level Security (RLS) on all tables
+- [ ] Define RLS policies to restrict read/write to the row owner (matching `auth.uid()`)
+- [ ] Initialize Supabase clients in frontend and backend
 
-**Done when**: All three models load without errors and indexes are created.
+**Done when**: Tables are created in Supabase with functional RLS policies.
 
 ---
 
 ### Phase 3: Authentication
-**Goal**: Secure signup/login with JWT, protected route middleware.
+**Goal**: Secure signup/login with Supabase Auth.
 
-- [ ] Implement `POST /api/auth/register` with password strength validation (8+ chars, uppercase, lowercase, number)
-- [ ] Implement `POST /api/auth/login` with generic error messages (prevent email enumeration)
-- [ ] Implement `GET /api/auth/me` for session restoration
-- [ ] Create JWT auth middleware — require `JWT_SECRET` env var, fail on startup if missing
-- [ ] Create rate limiter middleware (auth: 5/min, API: 30/min, chat: 10/min)
-- [ ] Create input sanitization middleware (HTML stripping, NoSQL injection prevention)
+- [ ] Set up Supabase Auth providers (Email/Password and Google OAuth)
+- [ ] Update frontend `AuthPage` to use Supabase signup, login, and Google sign-in methods
+- [ ] Update backend `auth.js` middleware to verify Supabase JWT token via Supabase Admin Client
+- [ ] Create rate limiter middleware (API: 30/min, chat: 10/min)
+- [ ] Create input sanitization middleware (HTML stripping)
 - [ ] Add security headers middleware (X-Frame-Options, X-Content-Type-Options, etc.)
 - [ ] Wire all middleware into Express app
 
-**Done when**: Register, login, and token verification work. Rate limiting blocks after threshold. Malicious input is stripped.
+**Done when**: Register, login (Email and Google), and token verification work. Rate limiting blocks after threshold. Malicious input is stripped.
 
 ---
 
@@ -158,8 +157,8 @@
 **Goal**: Production deployment with proper configuration.
 
 - [ ] Build frontend: `npm run build`
-- [ ] Deploy backend to Render.com with env vars: `MONGODB_URI`, `GROQ_API_KEY`, `JWT_SECRET`, `FRONTEND_URL`
-- [ ] Deploy frontend to Vercel with env var: `VITE_API_URL`
+- [ ] Deploy backend to Render.com with env vars: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `GROQ_API_KEY`, `FRONTEND_URL`
+- [ ] Deploy frontend to Vercel with env vars: `VITE_API_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 - [ ] Verify CORS works between deployed frontend and backend
 - [ ] Test all flows end-to-end in production
 - [ ] Verify rate limiting works in production

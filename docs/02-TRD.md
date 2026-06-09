@@ -24,17 +24,17 @@
 | Runtime | **Node.js 18+** |
 | Framework | **Express.js 5** |
 | Language | JavaScript (ES Modules) |
-| Authentication | **JWT** (jsonwebtoken) + **bcryptjs** for password hashing |
-| Session IDs | UUIDv4 (uuid package) |
+| Authentication | **Supabase Auth** (Email/Password, Google OAuth) |
+| Session IDs | UUIDv4 |
 
 ### Database
 
 | Aspect | Choice |
 |--------|--------|
-| Database | **MongoDB Atlas** (cloud-hosted) |
-| ODM | **Mongoose 9** |
-| Collections | `users`, `sessions`, `bookmarks` |
-| Indexing | `users.email`, `sessions.sessionId + userId`, `bookmarks.userId + createdAt` |
+| Database | **Supabase PostgreSQL** |
+| ORM/Client | **@supabase/supabase-js** |
+| Tables | `users` (auth.users), `sessions`, `bookmarks` |
+| Security | Row Level Security (RLS) policies |
 
 ### AI / LLM
 
@@ -61,15 +61,13 @@
 |-----------|----------|
 | Frontend | **Vercel** (auto-detects Vite) |
 | Backend | **Render.com** (Web Service) |
-| Database | **MongoDB Atlas** (free M0 cluster) |
+| Database | **Supabase** (PostgreSQL database & Auth) |
 
 ### Key Libraries
 
 **Backend:**
 - `express` — HTTP server
-- `mongoose` — MongoDB ODM
-- `jsonwebtoken` — JWT auth
-- `bcryptjs` — Password hashing
+- `@supabase/supabase-js` — Supabase client
 - `axios` — External API calls
 - `uuid` — Session ID generation
 - `xml2js` — PubMed XML parsing
@@ -85,9 +83,9 @@
 
 **Backend (.env):**
 ```
-MONGODB_URI          # MongoDB Atlas connection string
+SUPABASE_URL         # Supabase project URL
+SUPABASE_SERVICE_ROLE_KEY # Supabase service role key for admin operations
 GROQ_API_KEY         # Groq API key for Llama 3.3
-JWT_SECRET           # JWT signing secret (min 32 chars)
 FRONTEND_URL         # CORS origin (e.g. http://localhost:5173)
 PORT                 # Server port (default: 5000)
 NCBI_API_KEY         # Optional: higher PubMed rate limits
@@ -96,16 +94,18 @@ NCBI_API_KEY         # Optional: higher PubMed rate limits
 **Frontend (.env):**
 ```
 VITE_API_URL         # Backend API base URL (e.g. http://localhost:5000/api)
+VITE_SUPABASE_URL    # Supabase project URL
+VITE_SUPABASE_ANON_KEY # Supabase anon key
 ```
 
 ### Security Measures
 
-- JWT authentication on all protected routes
-- Password hashing with bcrypt (salt rounds: 12)
-- Rate limiting (auth: 5/min, API: 30/min, chat: 10/min)
-- Input sanitization (HTML stripping, NoSQL injection prevention)
+- Supabase Auth (JWT validation on backend routes)
+- Database Row Level Security (RLS)
+- Rate limiting (API: 30/min, chat: 10/min)
+- Input sanitization (HTML stripping)
 - Security headers (X-Frame-Options, X-Content-Type-Options, etc.)
-- User-scoped data access (all queries filtered by userId)
+- User-scoped data access (handled by RLS and backend filters)
 - CORS restricted to explicit frontend URL
 
 ### Constraints

@@ -6,123 +6,66 @@
 
 ### Database
 
-**MongoDB Atlas** (NoSQL document database) via **Mongoose 9** ODM.
-
-Database name: `curalink`
+**Supabase PostgreSQL** relational database.
 
 ---
 
-### Collection: `users`
+### Table: `users` (managed by Supabase Auth)
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| `_id` | ObjectId | Auto-generated, primary key | MongoDB document ID |
-| `name` | String | Required, trim, 2–50 chars | User's full name |
-| `email` | String | Required, unique, lowercase, trim, regex-validated | Login email address |
-| `password` | String | Required, min 8 chars (stored as bcrypt hash, salt=12) | Hashed password |
-| `createdAt` | Date | Auto (timestamps: true) | Account creation time |
-| `updatedAt` | Date | Auto (timestamps: true) | Last account update |
-
-**Indexes:**
-- `{ email: 1 }` — unique, for fast login lookups
-
-**Security:**
-- Password is hashed via `bcryptjs` (12 salt rounds) in a `pre('save')` hook
-- Password is stripped from JSON output via `toJSON()` override
-- `comparePassword()` instance method for login verification
-
----
-
-### Collection: `sessions`
-
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| `_id` | ObjectId | Auto-generated | MongoDB document ID |
-| `sessionId` | String | Required, unique, indexed | UUIDv4 session identifier |
-| `userId` | ObjectId | Required, indexed, ref → `users` | Owner of this session |
-| `patientName` | String | Default: '' | Patient name context |
-| `disease` | String | Default: '' | Primary disease/condition |
-| `location` | String | Default: '' | Patient location |
-| `age` | String | Default: '' | Patient age |
-| `gender` | String | Default: '' | Patient gender |
-| `messages` | Array of `Message` | Embedded subdocuments | Full conversation history |
-| `createdAt` | Date | Auto (timestamps: true) | Session creation time |
-| `updatedAt` | Date | Auto (timestamps: true) | Last message time |
-
-**Indexes:**
-- `{ sessionId: 1 }` — unique, for direct session lookup
-- `{ userId: 1 }` — for listing user's sessions
-
-#### Embedded: `Message` subdocument
+Supabase handles the `auth.users` table automatically. We use this table to manage authentication via Email/Password and Google OAuth.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `role` | String (enum: 'user', 'assistant') | Message sender |
-| `content` | String (required) | Message text |
-| `metadata.publications` | Array of `Publication` | Retrieved publications (assistant only) |
-| `metadata.clinicalTrials` | Array of `Trial` | Retrieved trials (assistant only) |
-| `metadata.expandedQuery` | String | LLM-expanded query |
-| `metadata.llmResponse` | Mixed (JSON) | Full structured LLM response |
-| `metadata.stats` | Mixed (JSON) | Retrieval statistics |
-| `timestamp` | Date | Message timestamp |
-
-#### Embedded: `Publication` subdocument
-
-| Field | Type |
-|-------|------|
-| `id` | String |
-| `title` | String |
-| `abstract` | String |
-| `authors` | Array of String |
-| `year` | Number |
-| `source` | String ('PubMed' / 'OpenAlex') |
-| `url` | String |
-| `finalScore` | Number |
-
-#### Embedded: `Trial` subdocument
-
-| Field | Type |
-|-------|------|
-| `id` | String |
-| `title` | String |
-| `status` | String |
-| `briefSummary` | String |
-| `eligibilityCriteria` | String |
-| `minAge` | String |
-| `maxAge` | String |
-| `location` | String |
-| `contactInfo` | String |
-| `url` | String |
-| `finalScore` | Number |
+| `id` | UUID | Primary key |
+| `email` | String | User's email address |
+| `encrypted_password` | String | Hashed password |
+| `created_at` | Timestamp | Account creation time |
 
 ---
 
-### Collection: `bookmarks`
+### Table: `sessions`
 
 | Field | Type | Constraints | Description |
 |-------|------|-------------|-------------|
-| `_id` | ObjectId | Auto-generated | MongoDB document ID |
-| `userId` | ObjectId | Required, indexed, ref → `users` | Bookmark owner |
-| `sessionId` | String | Required | Reference to session |
-| `messageIndex` | Number | Required | Index of bookmarked message in session |
-| `title` | String | Default: 'Untitled Research' | Display title |
-| `disease` | String | Default: '' | Disease tag |
-| `preview` | String | Default: '' | Text preview |
-| `createdAt` | Date | Auto (timestamps: true) | Bookmark creation |
-| `updatedAt` | Date | Auto (timestamps: true) | Last update |
+| `id` | UUID | Primary key, default gen_random_uuid() | Database ID |
+| `session_id` | String | Unique, Not Null | App-level UUIDv4 session identifier |
+| `user_id` | UUID | Foreign Key -> `auth.users(id)` | Owner of this session |
+| `patient_name` | String | | Patient name context |
+| `disease` | String | | Primary disease/condition |
+| `location` | String | | Patient location |
+| `age` | String | | Patient age |
+| `gender` | String | | Patient gender |
+| `messages` | JSONB | Not Null, Default '[]'::jsonb | Full conversation history |
+| `created_at` | Timestamp | Default now() | Session creation time |
+| `updated_at` | Timestamp | Default now() | Last message time |
+
+---
+
+### Table: `bookmarks`
+
+| Field | Type | Constraints | Description |
+|-------|------|-------------|-------------|
+| `id` | UUID | Primary key, default gen_random_uuid() | Database ID |
+| `user_id` | UUID | Foreign Key -> `auth.users(id)` | Bookmark owner |
+| `session_id` | String | Not Null | Reference to session `session_id` |
+| `message_index` | Integer | Not Null | Index of bookmarked message |
+| `title` | String | Default 'Untitled Research' | Display title |
+| `disease` | String | | Disease tag |
+| `preview` | String | | Text preview |
+| `created_at` | Timestamp | Default now() | Bookmark creation |
+| `updated_at` | Timestamp | Default now() | Last update |
 
 **Indexes:**
-- `{ userId: 1, createdAt: -1 }` — for listing user's bookmarks (newest first)
-- `{ userId: 1, sessionId: 1, messageIndex: 1 }` — unique compound, prevents duplicate bookmarks
+- Unique constraint on `(user_id, session_id, message_index)` prevents duplicate bookmarks.
 
 ---
 
 ### Relationships
 
 ```
-users._id ←──── sessions.userId     (one-to-many: user has many sessions)
-users._id ←──── bookmarks.userId    (one-to-many: user has many bookmarks)
-sessions.sessionId ←── bookmarks.sessionId  (many-to-one: bookmark references a session)
+auth.users.id ←──── sessions.user_id     (one-to-many: user has many sessions)
+auth.users.id ←──── bookmarks.user_id    (one-to-many: user has many bookmarks)
+sessions.session_id ←── bookmarks.session_id  (many-to-one: bookmark references a session)
 ```
 
 ---
@@ -131,54 +74,30 @@ sessions.sessionId ←── bookmarks.sessionId  (many-to-one: bookmark referen
 
 | Component | Implementation |
 |-----------|---------------|
-| **Strategy** | Stateless JWT (JSON Web Tokens) |
-| **Token Storage** | Client-side `localStorage` |
-| **Token Payload** | `{ id, email, name }` |
-| **Token Expiry** | 7 days |
-| **Signing Algorithm** | HS256 (HMAC-SHA256) |
-| **Secret** | `JWT_SECRET` env var (required, min 32 chars recommended) |
-| **Password Hashing** | bcryptjs with 12 salt rounds |
+| **Strategy** | Supabase Auth (Email/Password, Google OAuth) |
+| **Token Storage** | Client-side via `@supabase/supabase-js` |
+| **Token Payload** | Supabase JWT |
+| **Backend Validation**| Supabase client token verification |
 
-### Row-Level Security (MongoDB Equivalent)
+### Row-Level Security (RLS)
 
-MongoDB doesn't have built-in RLS like PostgreSQL. Security is enforced at the **application layer**:
+Security is enforced at the database layer using PostgreSQL Row Level Security (RLS):
 
 | Rule | Implementation |
 |------|----------------|
-| Users can only read their own sessions | All session queries include `{ userId: req.user.id }` |
-| Users can only modify their own sessions | Update/delete queries include `{ userId: req.user.id }` |
-| Users can only read their own bookmarks | All bookmark queries include `{ userId: req.user.id }` |
-| Users can only bookmark their own sessions | `POST /bookmarks` verifies session ownership before creation |
-| Password never exposed | `toJSON()` strips password field from User documents |
-
-### User Roles
-
-| Role | Access |
-|------|--------|
-| **user** (default) | Full access to own sessions, bookmarks, and analytics |
-| **admin** | Not implemented in v1 — future: manage users, view system stats |
-
----
-
-### Sensitive Fields
-
-| Field | Protection |
-|-------|------------|
-| `users.password` | Bcrypt-hashed (12 rounds), stripped from API responses |
-| `users.email` | Stored lowercase, only visible to the user themselves |
-| JWT token | Stored in localStorage, transmitted via `Authorization: Bearer` header |
-| `JWT_SECRET` | Server-side env var only, never exposed |
-| Patient data (name, disease, age) | Stored in session, accessible only by session owner |
+| Users can only read their own sessions | `create policy "Users can view own sessions" on sessions for select using (auth.uid() = user_id);` |
+| Users can only modify their own sessions | `create policy "Users can modify own sessions" on sessions for update/insert/delete using (auth.uid() = user_id);` |
+| Users can only read their own bookmarks | `create policy "Users can view own bookmarks" on bookmarks for select using (auth.uid() = user_id);` |
+| Users can only modify their own bookmarks | `create policy "Users can modify own bookmarks" on bookmarks for update/insert/delete using (auth.uid() = user_id);` |
 
 ---
 
 ### API Endpoints
 
+Authentication is handled directly by Supabase on the frontend. The backend verifies the Supabase token for API access.
+
 | Method | Endpoint | Auth | Description |
 |--------|----------|:----:|-------------|
-| POST | `/api/auth/register` | ✗ | Create account |
-| POST | `/api/auth/login` | ✗ | Login, get JWT |
-| GET | `/api/auth/me` | ✓ | Get current user profile |
 | POST | `/api/chat` | ✓ | Run research pipeline |
 | GET | `/api/sessions` | ✓ | List user's sessions |
 | GET | `/api/sessions/stats/overview` | ✓ | Get analytics data |

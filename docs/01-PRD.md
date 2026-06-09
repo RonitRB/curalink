@@ -33,7 +33,7 @@ Medical professionals, patients, and caregivers need fast access to the latest r
 5. **Re-Ranking Engine** — Multi-factor scoring: keyword relevance (40%), recency (30%), source credibility (20%), abstract quality (10%)
 6. **LLM Reasoning** — Structured JSON response with condition overview, research insights with citations, clinical trials summary, personalized note, key takeaways
 7. **Session Management** — Create, list, select, rename, and delete research sessions with full message history
-8. **User Authentication** — Secure signup/login with JWT tokens and bcrypt password hashing
+8. **User Authentication** — Secure signup/login with Supabase Auth (Email/Password and Google OAuth)
 9. **Bookmarks** — Save important AI responses for quick access
 10. **Analytics Dashboard** — Research activity heatmap, top diseases chart, session/message counts
 11. **Voice Input** — Web Speech API integration for hands-free query input
@@ -47,7 +47,7 @@ Medical professionals, patients, and caregivers need fast access to the latest r
 - PubMed Central full-text retrieval
 - Drug interaction checker
 - Multi-language support
-- OAuth login (Google, institutional SSO)
+- Institutional SSO
 - Research citation generator (APA, MLA, Vancouver)
 
 ### Out of Scope (v1)

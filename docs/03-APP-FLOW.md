@@ -40,18 +40,20 @@
 
 ```
 Landing → Auth Page
-              ├── Login Form → POST /api/auth/login → Success → Main App (Chat)
-              │                                      → Failure → Error message
+              ├── Google Sign-In → Supabase OAuth → Success → Main App (Chat)
               │
-              └── Register Form → POST /api/auth/register → Success → Main App (Chat)
-                                                           → Failure → Error message
+              ├── Login Form → Supabase Email Login → Success → Main App (Chat)
+              │                                     → Failure → Error message
+              │
+              └── Register Form → Supabase Signup → Success → Main App (Chat)
+                                                  → Failure → Error message
 ```
 
 **Post-auth redirect:** Always → Main App (empty chat with welcome screen)
 
-**Logout flow:** Click logout button in sidebar → Clear localStorage + state → Auth Page
+**Logout flow:** Click logout button in sidebar → Supabase Sign Out → Auth Page
 
-**Forced logout:** 401 API response → Axios interceptor fires `auth:logout` event → Auth state cleared → Auth Page
+**Forced logout:** 401 API response / invalid session → Auth state cleared → Auth Page
 
 ---
 

@@ -60,7 +60,7 @@ User Query + Patient Context
 |-------|-----------|
 | Frontend | React + Vite |
 | Backend | Express.js + Node.js |
-| Database | MongoDB Atlas |
+| Database & Auth | Supabase (PostgreSQL) |
 | LLM | Groq API - `llama-3.3-70b-versatile` (open-source model) |
 | Publications | OpenAlex API + PubMed NCBI Entrez API |
 | Clinical Trials | ClinicalTrials.gov API v2 |
@@ -79,12 +79,11 @@ curalink/
 │   ├── server.js                    # Express app entry point
 │   ├── .env.example                 # Environment variables template
 │   ├── render.yaml                  # Render.com deploy config
-│   ├── models/
-│   │   └── Session.js               # MongoDB session + message schema
 │   ├── routes/
 │   │   ├── chat.js                  # POST /api/chat (main pipeline)
 │   │   └── sessions.js              # GET/POST/DELETE /api/sessions
 │   └── services/
+│       ├── supabase.js              # Supabase admin client setup
 │       ├── llmService.js            # Groq API (Llama 3.3-70B)
 │       ├── queryExpander.js         # LLM-based query expansion
 │       ├── pubmedService.js         # PubMed esearch + efetch pipeline
@@ -115,7 +114,7 @@ curalink/
 
 ### Prerequisites
 - Node.js 18+
-- A free [MongoDB Atlas](https://cloud.mongodb.com) cluster
+- A free [Supabase](https://supabase.com) project
 - A free [Groq API key](https://console.groq.com) (Llama 3.3-70B)
 
 ### 1. Clone & Install
@@ -134,7 +133,8 @@ npm install
 
 **Backend** (`curalink/backend/.env`):
 ```env
-MONGODB_URI=mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/curalink
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=ey...
 GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 FRONTEND_URL=http://localhost:5173
 PORT=5000
@@ -143,6 +143,8 @@ PORT=5000
 **Frontend** (`curalink/frontend/.env`):
 ```env
 VITE_API_URL=http://localhost:5000/api
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_ANON_KEY=ey...
 ```
 
 ### 3. Start Development Servers
@@ -168,12 +170,12 @@ Open [http://localhost:5173](http://localhost:5173)
 2. Create a new **Web Service** on [render.com](https://render.com)
 3. Set build command: `npm install`
 4. Set start command: `npm start`
-5. Add environment variables: `MONGODB_URI`, `GROQ_API_KEY`, `FRONTEND_URL`
+5. Add environment variables: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `GROQ_API_KEY`, `FRONTEND_URL`
 
 ### Frontend → Vercel
 1. Push the `frontend/` folder to GitHub
 2. Import project on [vercel.com](https://vercel.com)
-3. Set environment variable: `VITE_API_URL=https://your-render-url.onrender.com/api`
+3. Set environment variables: `VITE_API_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 4. Deploy — Vercel auto-detects Vite
 
 ---
@@ -259,5 +261,5 @@ Main research pipeline endpoint.
 
 ### Multi-turn Context
 - Last 6 messages injected into LLM system prompt
-- Session stored in MongoDB with full metadata per message
+- Session stored in Supabase (PostgreSQL) with full metadata per message
 - Patient context (disease, name, location) persisted across turns
