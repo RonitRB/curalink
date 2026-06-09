@@ -49,6 +49,7 @@ export default function AuthPage() {
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -58,6 +59,7 @@ export default function AuthPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setIsLoading(true);
 
     try {
@@ -72,7 +74,11 @@ export default function AuthPage() {
           setIsLoading(false);
           return;
         }
-        await register(form.name.trim(), form.email.trim(), form.password);
+        const result = await register(form.name.trim(), form.email.trim(), form.password);
+        if (!result.session) {
+          setSuccess('Registration successful! Please check your email to verify your account.');
+          setForm({ name: '', email: '', password: '' });
+        }
       } else {
         await login(form.email.trim(), form.password);
       }
@@ -97,6 +103,7 @@ export default function AuthPage() {
   const switchMode = () => {
     setMode((m) => (m === 'login' ? 'register' : 'login'));
     setError('');
+    setSuccess('');
   };
 
   return (
@@ -136,6 +143,16 @@ export default function AuthPage() {
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
             {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="auth-success" style={{ backgroundColor: 'rgba(52, 211, 153, 0.1)', color: '#34d399', padding: '12px', borderRadius: '8px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', border: '1px solid rgba(52, 211, 153, 0.2)' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16, flexShrink: 0 }}>
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            {success}
           </div>
         )}
 

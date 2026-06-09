@@ -85,12 +85,16 @@ export function AuthProvider({ children }) {
     // If email confirmation is off, the user is immediately signed in
     if (data.session) {
       return {
-        id: data.user.id,
-        email: data.user.email,
-        name: data.user.user_metadata?.name || 'User',
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+          name: data.user.user_metadata?.name || 'User',
+        },
+        session: data.session
       };
     }
-    return data.user;
+    // If email confirmation is on, session will be null
+    return { user: data.user, session: null };
   }, []);
 
   const logout = useCallback(async () => {
