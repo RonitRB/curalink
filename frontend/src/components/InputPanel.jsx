@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 
 const EXAMPLE_QUERIES = [
   'Latest treatment for lung cancer',
@@ -59,7 +60,13 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
     gender: sessionContext?.gender || '',
   });
   const [isListening, setIsListening] = useState(false);
+  const [medications, setMedications] = useState([]);
+  const [medInput, setMedInput] = useState('');
+  const [language, setLanguage] = useState('English');
+  const [uploadedDoc, setUploadedDoc] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const recognitionRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Sync session context when it changes
   useEffect(() => {
@@ -86,6 +93,9 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
       location: form.location,
       age: form.age,
       gender: form.gender,
+      medications,
+      documentContext: uploadedDoc?.text || '',
+      language,
     });
     setForm((prev) => ({ ...prev, query: '' }));
   };
@@ -100,6 +110,9 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
       location: sessionContext?.location,
       age: sessionContext?.age,
       gender: sessionContext?.gender,
+      medications,
+      documentContext: uploadedDoc?.text || '',
+      language,
     });
     setQuickText('');
   };
@@ -149,6 +162,54 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
   const stopVoice = () => {
     recognitionRef.current?.stop();
     setIsListening(false);
+  };
+
+  // ── Medication tag management ────────────────────────────
+  const addMedication = () => {
+    const med = medInput.trim();
+    if (med && !medications.includes(med) && medications.length < 10) {
+      setMedications((prev) => [...prev, med]);
+      setMedInput('');
+    }
+  };
+
+  const removeMedication = (idx) => {
+    setMedications((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleMedKeyDown = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); addMedication(); }
+  };
+
+  // ── File upload handler ──────────────────────────────────
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const token = localStorage.getItem('supabase_token') || '';
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const res = await axios.post(`${baseUrl}/upload`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: token ? `Bearer ${token}` : '',
+        },
+        timeout: 30000,
+      });
+
+      if (res.data?.extractedText) {
+        setUploadedDoc({ name: file.name, text: res.data.extractedText, chars: res.data.charCount });
+      }
+    } catch (err) {
+      console.error('Upload failed:', err);
+      alert(err.response?.data?.error || 'File upload failed.');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const queryLength = mode === 'structured' ? form.query.length : quickText.length;
@@ -257,6 +318,81 @@ export default function InputPanel({ onSubmit, isLoading, sessionContext }) {
                 <option value="Female">Female</option>
                 <option value="Other">Other</option>
               </select>
+            </div>
+          </div>
+
+          {/* Medications tag input */}
+          <div className="form-row">
+            <div className="form-field" style={{ gridColumn: '1 / -1' }}>
+              <FieldLabel>Current Medications</FieldLabel>
+              <div className="med-tag-input">
+                {medications.map((med, i) => (
+                  <span key={i} className="med-tag">
+                    {med}
+                    <button type="button" className="med-tag-x" onClick={() => removeMedication(i)}>×</button>
+                  </span>
+                ))}
+                <input
+                  className="med-tag-field"
+                  placeholder={medications.length === 0 ? 'e.g. Metformin, Lisinopril (press Enter to add)' : 'Add more…'}
+                  value={medInput}
+                  onChange={(e) => setMedInput(e.target.value)}
+                  onKeyDown={handleMedKeyDown}
+                  onBlur={addMedication}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Language selector + File upload */}
+          <div className="form-row">
+            <div className="form-field">
+              <FieldLabel>Response Language</FieldLabel>
+              <select
+                id="input-language"
+                className="form-input"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+              >
+                <option value="English">English</option>
+                <option value="Spanish">Español</option>
+                <option value="French">Français</option>
+                <option value="Hindi">हिन्दी</option>
+                <option value="German">Deutsch</option>
+                <option value="Portuguese">Português</option>
+                <option value="Chinese">中文</option>
+                <option value="Japanese">日本語</option>
+                <option value="Arabic">العربية</option>
+              </select>
+            </div>
+            <div className="form-field">
+              <FieldLabel>Upload Medical Document</FieldLabel>
+              <div className="file-upload-zone" onClick={() => fileInputRef.current?.click()}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.txt,.jpg,.jpeg,.png"
+                  onChange={handleFileUpload}
+                  style={{ display: 'none' }}
+                />
+                {isUploading ? (
+                  <span className="upload-status">Processing…</span>
+                ) : uploadedDoc ? (
+                  <span className="upload-status upload-done">
+                    ✓ {uploadedDoc.name} ({uploadedDoc.chars} chars)
+                    <button type="button" className="upload-clear" onClick={(e) => { e.stopPropagation(); setUploadedDoc(null); }}>✕</button>
+                  </span>
+                ) : (
+                  <span className="upload-placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    PDF, TXT, or Image
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 

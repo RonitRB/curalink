@@ -54,6 +54,9 @@ export const sessionsAPI = {
   update: (id, data) => api.put(`/sessions/${encodeURIComponent(id)}`, data),
   delete: (id) => api.delete(`/sessions/${encodeURIComponent(id)}`),
   getStats: () => api.get('/sessions/stats/overview'),
+  share: (id) => api.post(`/sessions/${encodeURIComponent(id)}/share`),
+  unshare: (id) => api.delete(`/sessions/${encodeURIComponent(id)}/share`),
+  getShared: (token) => api.get(`/sessions/shared/${encodeURIComponent(token)}`),
 };
 
 // ── Bookmarks API ─────────────────────────────────────────────
@@ -61,6 +64,14 @@ export const bookmarksAPI = {
   getAll: () => api.get('/bookmarks'),
   create: (data) => api.post('/bookmarks', data),
   delete: (id) => api.delete(`/bookmarks/${encodeURIComponent(id)}`),
+};
+
+// ── Alerts API ────────────────────────────────────────────────
+export const alertsAPI = {
+  getAll: () => api.get('/alerts'),
+  create: (data) => api.post('/alerts', data),
+  delete: (id) => api.delete(`/alerts/${encodeURIComponent(id)}`),
+  toggle: (id, isActive) => api.patch(`/alerts/${encodeURIComponent(id)}`, { is_active: isActive }),
 };
 
 export default api;

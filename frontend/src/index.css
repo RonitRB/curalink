@@ -2630,3 +2630,559 @@ a:hover { color: var(--p-bright); }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   V2.0 — MEDICATION TAG INPUT
+   ══════════════════════════════════════════════════════════════ */
+.med-tag-input {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--s-high);
+  border: 1px solid var(--b2);
+  border-radius: var(--r-md);
+  min-height: 42px;
+  align-items: center;
+  transition: border-color var(--t-fast) var(--ease);
+}
+.med-tag-input:focus-within {
+  border-color: var(--p-border);
+  box-shadow: 0 0 12px var(--p-glow-lg);
+}
+
+.med-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px 3px 10px;
+  background: linear-gradient(135deg, var(--p-bg) 0%, var(--sec-bg) 100%);
+  border: 1px solid var(--p-border);
+  border-radius: var(--r-full);
+  font-size: 12px;
+  color: var(--p-bright);
+  font-weight: 500;
+  animation: fadeSlideUp 0.15s var(--ease) both;
+}
+
+.med-tag-x {
+  background: none;
+  border: none;
+  color: var(--t3);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  transition: color var(--t-fast) var(--ease);
+}
+.med-tag-x:hover { color: var(--err); }
+
+.med-tag-field {
+  border: none;
+  background: transparent;
+  color: var(--t2);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  flex: 1;
+  min-width: 120px;
+}
+.med-tag-field::placeholder { color: var(--t4); }
+
+/* ══════════════════════════════════════════════════════════════
+   V2.0 — FILE UPLOAD ZONE
+   ══════════════════════════════════════════════════════════════ */
+.file-upload-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  background: var(--s-high);
+  border: 1.5px dashed var(--b2);
+  border-radius: var(--r-md);
+  min-height: 42px;
+  cursor: pointer;
+  transition: all var(--t-mid) var(--ease);
+}
+.file-upload-zone:hover {
+  border-color: var(--p-border);
+  background: var(--p-bg);
+}
+
+.upload-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--t3);
+}
+
+.upload-status {
+  font-size: 12.5px;
+  color: var(--t3);
+  animation: fadeSlideUp 0.2s var(--ease) both;
+}
+.upload-status.upload-done {
+  color: var(--ok);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.upload-clear {
+  background: none;
+  border: none;
+  color: var(--t4);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0 2px;
+  transition: color var(--t-fast) var(--ease);
+}
+.upload-clear:hover { color: var(--err); }
+
+/* ══════════════════════════════════════════════════════════════
+   V2.0 — CITATION DROPDOWN
+   ══════════════════════════════════════════════════════════════ */
+.citation-dropdown-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.pub-cite-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--sec-bg);
+  border: 1px solid var(--sec-border);
+  border-radius: var(--r-full);
+  font-size: 11px;
+  color: var(--sec);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  transition: all var(--t-fast) var(--ease);
+}
+.pub-cite-btn:hover {
+  background: rgba(129, 140, 248, 0.15);
+  box-shadow: 0 0 8px var(--sec-glow);
+}
+
+.citation-dropdown {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  width: 320px;
+  background: var(--s-modal);
+  border: 1px solid var(--b2);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-lg);
+  z-index: 100;
+  overflow: hidden;
+  animation: fadeSlideUp 0.15s var(--ease) both;
+}
+
+.citation-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--b1);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background var(--t-fast) var(--ease);
+}
+.citation-option:last-child { border-bottom: none; }
+.citation-option:hover { background: var(--s-hover); }
+
+.citation-format-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--p);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 60px;
+  flex-shrink: 0;
+}
+
+.citation-preview {
+  font-size: 11px;
+  color: var(--t3);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.citation-copied {
+  color: var(--ok);
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   V2.0 — PUB CARD FOOTER + SIMILARITY
+   ══════════════════════════════════════════════════════════════ */
+.pub-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  gap: 8px;
+}
+
+.pub-similarity {
+  font-size: 10px;
+  color: var(--ok);
+  background: var(--ok-bg);
+  border: 1px solid var(--ok-border);
+  padding: 2px 7px;
+  border-radius: var(--r-full);
+  font-weight: 600;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   V2.0 — DATA VISUALIZATION CHARTS
+   ══════════════════════════════════════════════════════════════ */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 4px 0;
+}
+
+.chart-container {
+  background: var(--s-high);
+  border: 1px solid var(--b1);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  overflow: hidden;
+}
+
+.chart-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--t2);
+  margin-bottom: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   V2.0 — DRUG SAFETY NOTE
+   ══════════════════════════════════════════════════════════════ */
+.drug-safety-note {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--warn);
+  position: relative;
+}
+.drug-safety-note::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  background: var(--warn);
+  border-radius: 0 2px 2px 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   V2.0 — SHARE SESSION
+   ══════════════════════════════════════════════════════════════ */
+.share-session-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.share-session-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--sec-bg);
+  border: 1px solid var(--sec-border);
+  border-radius: var(--r-full);
+  font-size: 11px;
+  color: var(--sec);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease);
+}
+.share-session-btn:hover:not(:disabled) {
+  background: rgba(129, 140, 248, 0.15);
+  border-color: var(--sec);
+}
+.share-session-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.share-session-result {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--s-high);
+  border: 1px solid var(--p-border);
+  border-radius: var(--r-full);
+  padding: 2px 2px 2px 10px;
+  animation: fadeSlideUp 0.2s var(--ease) both;
+}
+
+.share-session-input {
+  background: transparent;
+  border: none;
+  color: var(--t2);
+  font-size: 11px;
+  width: 160px;
+  outline: none;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.share-session-copy {
+  padding: 4px 10px;
+  background: var(--p);
+  color: var(--s-void);
+  border: none;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.share-session-copy:hover { background: var(--p-bright); }
+
+/* ══════════════════════════════════════════════════════════════
+   V2.0 — ALERTS PANEL
+   ══════════════════════════════════════════════════════════════ */
+.alerts-panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 500px;
+  background: var(--s-mid);
+  border: 1px solid var(--b2);
+  border-radius: var(--r-2xl);
+  box-shadow: var(--sh-lg);
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  animation: fadeSlideUp 0.3s var(--ease-spring) both;
+}
+
+.alerts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--b1);
+}
+
+.alerts-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--t1);
+}
+
+.alerts-close {
+  background: none;
+  border: none;
+  color: var(--t3);
+  font-size: 18px;
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease);
+}
+.alerts-close:hover { color: var(--err); }
+
+.alerts-content {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.alerts-desc {
+  font-size: 13.5px;
+  color: var(--t3);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.alert-form {
+  margin-bottom: 32px;
+}
+
+.alert-error {
+  color: var(--err);
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alert-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: var(--s-high);
+  border: 1px solid var(--b2);
+  border-radius: var(--r-lg);
+  transition: all var(--t-fast) var(--ease);
+}
+.alert-card.inactive {
+  opacity: 0.6;
+  background: transparent;
+}
+
+.alert-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert-disease {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--t1);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.alert-meta {
+  font-size: 11.5px;
+  color: var(--t4);
+}
+
+.alert-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 16px;
+}
+
+.alert-delete {
+  background: none;
+  border: none;
+  color: var(--t4);
+  cursor: pointer;
+  padding: 4px;
+  transition: color var(--t-fast) var(--ease);
+}
+.alert-delete:hover { color: var(--err); }
+
+/* Toggle Switch */
+.alert-toggle {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+.alert-toggle input { opacity: 0; width: 0; height: 0; }
+.alert-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--s-low);
+  border: 1px solid var(--b2);
+  transition: .4s;
+  border-radius: 20px;
+}
+.alert-slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background-color: var(--t4);
+  transition: .4s;
+  border-radius: 50%;
+}
+.alert-toggle input:checked + .alert-slider {
+  background-color: var(--p-bg);
+  border-color: var(--p-border);
+}
+.alert-toggle input:checked + .alert-slider:before {
+  transform: translateX(16px);
+  background-color: var(--p);
+  box-shadow: 0 0 6px var(--p-glow);
+}
+
+.alerts-empty, .alerts-loading {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--t4);
+  font-size: 13px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   V2.0 — SHARED SESSION PAGE
+   ══════════════════════════════════════════════════════════════ */
+.shared-page-loading, .shared-page-error {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--s-canvas);
+  color: var(--t3);
+  text-align: center;
+  padding: 24px;
+}
+.shared-error-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+.shared-page-error h2 {
+  color: var(--t1);
+  font-family: 'Space Grotesk', sans-serif;
+  margin-bottom: 8px;
+}
+
+.shared-banner {
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-border);
+  color: var(--amber);
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  font-size: 13px;
+  text-align: center;
+  margin: 0 auto 24px;
+  max-width: 940px;
+  width: 100%;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   V2.0 MOBILE RESPONSIVE
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+  .citation-dropdown {
+    width: 260px;
+  }
+}

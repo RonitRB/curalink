@@ -8,6 +8,9 @@ import AnalyticsDashboard from './components/AnalyticsDashboard';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import Accessibility from './components/Accessibility';
 import CookieConsent from './components/CookieConsent';
+import SharedSessionPage from './components/SharedSessionPage';
+import AlertsPanel from './components/AlertsPanel';
+import ShareSessionBtn from './components/ShareSessionBtn';
 import { chatAPI, sessionsAPI } from './api';
 import './index.css';
 
@@ -107,8 +110,9 @@ export default function App() {
   const [error, setError] = useState(null);
   const [sessionContext, setSessionContext] = useState({ patientName: '', disease: '', location: '', age: '', gender: '' });
   const [showDashboard, setShowDashboard] = useState(false);
+  const [showAlerts, setShowAlerts] = useState(false);
   const [toasts, setToasts] = useState([]);
-
+  const [route, setRoute] = useState(window.location.hash.slice(1) || '/');
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -189,7 +193,7 @@ export default function App() {
     }
   };
 
-  const handleSubmit = async ({ message, patientName, disease, location, age, gender }) => {
+  const handleSubmit = async ({ message, patientName, disease, location, age, gender, medications, documentContext, language }) => {
     if (!message.trim() || isLoading) return;
     setError(null);
     setShowDashboard(false);
@@ -207,6 +211,9 @@ export default function App() {
         location: location || sessionContext.location,
         age: age || sessionContext.age,
         gender: gender || sessionContext.gender,
+        medications: medications || [],
+        documentContext: documentContext || '',
+        language: language || 'English',
       };
 
       const res = await chatAPI.sendMessage(payload);
@@ -272,6 +279,10 @@ export default function App() {
   if (route === '/accessibility') {
     return <Accessibility onBack={handleBackToApp} />;
   }
+  if (route.startsWith('/shared/')) {
+    const token = route.replace('/shared/', '');
+    return <SharedSessionPage token={token} />;
+  }
 
   // ── Auth gate ───────────────────────────────────────────
   if (!isAuthenticated) {
@@ -312,6 +323,7 @@ export default function App() {
         isMobile={isMobile}
         onShowDashboard={() => { setShowDashboard(true); closeSidebarOnMobile(); }}
         showDashboard={showDashboard}
+        onShowAlerts={() => { setShowAlerts(true); closeSidebarOnMobile(); }}
       />
 
       <div className="main-area">
@@ -367,10 +379,18 @@ export default function App() {
           )}
 
           <div className="header-status" style={{ marginLeft: hasMessages ? undefined : 'auto' }}>
+            {currentSessionId && <ShareSessionBtn sessionId={currentSessionId} />}
             <div className="status-dot" />
             <span>Live</span>
           </div>
         </header>
+
+        {/* Alerts Panel */}
+        {showAlerts && (
+          <div className="sidebar-backdrop" style={{ zIndex: 300 }}>
+            <AlertsPanel onClose={() => setShowAlerts(false)} />
+          </div>
+        )}
 
         {/* Dashboard View */}
         {showDashboard ? (

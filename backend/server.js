@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import chatRoutes from './routes/chat.js';
 import sessionRoutes from './routes/sessions.js';
 import bookmarkRoutes from './routes/bookmarks.js';
+import uploadRoutes from './routes/upload.js';
+import alertRoutes from './routes/alerts.js';
 import sanitize from './middleware/sanitize.js';
 import { apiLimiter, chatLimiter } from './middleware/rateLimit.js';
 
@@ -49,7 +51,7 @@ app.use(cors({
 }));
 
 // ── Body parsing ──────────────────────────────────────────────
-app.use(express.json({ limit: '5mb' }));
+app.use(express.json({ limit: '15mb' }));
 
 // ── Input sanitization (applied to all routes) ────────────────
 app.use(sanitize);
@@ -71,6 +73,8 @@ app.use((req, res, next) => {
 app.use('/api/chat', apiLimiter, chatLimiter, chatRoutes);
 app.use('/api/sessions', apiLimiter, sessionRoutes);
 app.use('/api/bookmarks', apiLimiter, bookmarkRoutes);
+app.use('/api/upload', apiLimiter, uploadRoutes);
+app.use('/api/alerts', apiLimiter, alertRoutes);
 
 // ── Health check ──────────────────────────────────────────────
 app.get('/health', (req, res) => {

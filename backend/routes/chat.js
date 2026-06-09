@@ -11,7 +11,7 @@ const MAX_FIELD_LENGTH = 200;
 
 router.post('/', auth, async (req, res) => {
   try {
-    const { message, sessionId, patientName, disease, location, age, gender } = req.body;
+    const { message, sessionId, patientName, disease, location, age, gender, medications, documentContext, language } = req.body;
 
     if (!message || typeof message !== 'string' || !message.trim()) {
       return res.status(400).json({ error: 'Message is required.' });
@@ -84,6 +84,9 @@ router.post('/', auth, async (req, res) => {
       age: session.age,
       gender: session.gender,
       conversationHistory: session.messages.slice(-8),
+      medications: Array.isArray(medications) ? medications.filter((m) => typeof m === 'string').slice(0, 10) : [],
+      documentContext: typeof documentContext === 'string' ? documentContext.slice(0, 4000) : '',
+      language: typeof language === 'string' ? language.slice(0, 30) : 'English',
     });
 
     session.messages.push({

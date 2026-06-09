@@ -36,6 +36,8 @@ Supabase handles the `auth.users` table automatically. We use this table to mana
 | `age` | String | | Patient age |
 | `gender` | String | | Patient gender |
 | `messages` | JSONB | Not Null, Default '[]'::jsonb | Full conversation history |
+| `is_public` | Boolean | Default false | Whether session is shared |
+| `share_token` | String | Nullable | UUID for public sharing |
 | `created_at` | Timestamp | Default now() | Session creation time |
 | `updated_at` | Timestamp | Default now() | Last message time |
 
@@ -57,6 +59,33 @@ Supabase handles the `auth.users` table automatically. We use this table to mana
 
 **Indexes:**
 - Unique constraint on `(user_id, session_id, message_index)` prevents duplicate bookmarks.
+
+---
+
+### Table: `alerts`
+
+| Field | Type | Constraints | Description |
+|-------|------|-------------|-------------|
+| `id` | UUID | Primary key | Database ID |
+| `user_id` | UUID | Foreign Key -> `auth.users(id)` | Alert owner |
+| `disease` | String | Not Null | Disease/Condition to monitor |
+| `query` | String | | Search query for literature |
+| `is_active` | Boolean | Default true | Is alert active |
+| `frequency` | String | Default 'weekly' | Alert frequency |
+| `created_at` | Timestamp | Default now() | Creation time |
+
+---
+
+### Table: `article_embeddings` (pgvector)
+
+| Field | Type | Constraints | Description |
+|-------|------|-------------|-------------|
+| `id` | UUID | Primary key | Database ID |
+| `title` | String | Not Null | Publication title |
+| `abstract` | Text | | Publication abstract |
+| `embedding` | Vector(384) | Not Null | pgvector semantic embedding |
+| `metadata` | JSONB | | Additional pub data (authors, year) |
+| `created_at` | Timestamp | Default now() | Insertion time |
 
 ---
 
@@ -108,4 +137,12 @@ Authentication is handled directly by Supabase on the frontend. The backend veri
 | GET | `/api/bookmarks` | ✓ | List user's bookmarks |
 | POST | `/api/bookmarks` | ✓ | Create bookmark |
 | DELETE | `/api/bookmarks/:id` | ✓ | Delete bookmark |
+| POST | `/api/sessions/:id/share` | ✓ | Generate share link |
+| DELETE | `/api/sessions/:id/share`| ✓ | Revoke share link |
+| GET | `/api/sessions/shared/:token`| ✗ | Read shared session |
+| GET | `/api/alerts` | ✓ | List user's alerts |
+| POST | `/api/alerts` | ✓ | Create new alert |
+| PATCH | `/api/alerts/:id` | ✓ | Toggle alert status |
+| DELETE | `/api/alerts/:id` | ✓ | Delete alert |
+| POST | `/api/upload` | ✓ | Upload medical document |
 | GET | `/health` | ✗ | Health check |

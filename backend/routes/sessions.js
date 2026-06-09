@@ -244,4 +244,84 @@ router.delete('/:sessionId', auth, async (req, res) => {
   }
 });
 
+/** POST /api/sessions/:sessionId/share — generate a share link for a session */
+router.post('/:sessionId/share', auth, async (req, res) => {
+  try {
+    const supabase = createSupabaseClient(req.userJwt);
+    const shareToken = uuidv4();
+
+    const { data, error } = await supabase
+      .from('sessions')
+      .update({ is_public: true, share_token: shareToken, updated_at: new Date().toISOString() })
+      .eq('session_id', req.params.sessionId)
+      .eq('user_id', req.user.id)
+      .select('session_id, share_token')
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    if (!data) return res.status(404).json({ error: 'Session not found.' });
+
+    res.json({
+      shareToken: data.share_token,
+      shareUrl: `${process.env.FRONTEND_URL || ''}/#/shared/${data.share_token}`,
+    });
+  } catch (err) {
+    console.error('[Sessions] Share error:', err.message);
+    res.status(500).json({ error: 'Failed to generate share link.' });
+  }
+});
+
+/** DELETE /api/sessions/:sessionId/share — revoke a share link */
+router.delete('/:sessionId/share', auth, async (req, res) => {
+  try {
+    const supabase = createSupabaseClient(req.userJwt);
+
+    const { error } = await supabase
+      .from('sessions')
+      .update({ is_public: false, share_token: null, updated_at: new Date().toISOString() })
+      .eq('session_id', req.params.sessionId)
+      .eq('user_id', req.user.id);
+
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[Sessions] Unshare error:', err.message);
+    res.status(500).json({ error: 'Failed to revoke share link.' });
+  }
+});
+
+/** GET /api/sessions/shared/:shareToken — public read-only view of a shared session */
+router.get('/shared/:shareToken', async (req, res) => {
+  try {
+    const { shareToken } = req.params;
+    if (!shareToken || typeof shareToken !== 'string' || shareToken.length > 100) {
+      return res.status(400).json({ error: 'Invalid share token.' });
+    }
+
+    // Use admin client to bypass RLS for public sessions
+    const { supabaseAdmin } = await import('../services/supabase.js');
+    const { data: session, error } = await supabaseAdmin
+      .from('sessions')
+      .select('*')
+      .eq('share_token', shareToken)
+      .eq('is_public', true)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    if (!session) return res.status(404).json({ error: 'Shared session not found or link has expired.' });
+
+    res.json({
+      sessionId: session.session_id,
+      disease: session.disease,
+      patientName: session.patient_name ? session.patient_name.charAt(0) + '***' : 'Anonymous', // Redact name for privacy
+      messages: session.messages || [],
+      createdAt: session.created_at,
+      isShared: true,
+    });
+  } catch (err) {
+    console.error('[Sessions] Shared view error:', err.message);
+    res.status(500).json({ error: 'Failed to load shared session.' });
+  }
+});
+
 export default router;

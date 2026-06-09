@@ -2,6 +2,7 @@ import axios from 'axios';
 import { parseStringPromise } from 'xml2js';
 
 const NCBI_BASE = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils';
+const PMC_BASE = 'https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_json';
 
 /**
  * Fetch research publications from PubMed using two-step esearch → efetch pipeline.
@@ -88,6 +89,7 @@ export async function fetchPubMedArticles(query, maxResults = 80) {
 
         return {
           id: `pubmed_${pmid}`,
+          pmid,
           title,
           abstract,
           authors,
@@ -106,5 +108,48 @@ export async function fetchPubMedArticles(query, maxResults = 80) {
   } catch (err) {
     console.error('[PubMed] Error:', err.message);
     return [];
+  }
+}
+
+/**
+ * Fetch full text from PubMed Central (PMC) Open Access for a given PMID.
+ * Returns the plain text body if available, otherwise null.
+ * @param {string} pmid - PubMed article ID
+ * @returns {string|null} - Truncated full text or null
+ */
+export async function fetchPMCFullText(pmid) {
+  try {
+    // First, convert PMID to PMCID using the NCBI ID converter
+    const idRes = await axios.get('https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/', {
+      params: { ids: pmid, format: 'json' },
+      timeout: 8000,
+    });
+
+    const pmcid = idRes.data?.records?.[0]?.pmcid;
+    if (!pmcid) return null;
+
+    // Fetch full text from PMC BioC API
+    const ftRes = await axios.get(`${PMC_BASE}/${pmcid}/unicode`, {
+      timeout: 15000,
+    });
+
+    // Extract passages text
+    const documents = ftRes.data?.documents || [];
+    if (documents.length === 0) return null;
+
+    const passages = documents[0]?.passages || [];
+    const bodyText = passages
+      .filter((p) => p.infons?.section_type !== 'REF' && p.infons?.section_type !== 'SUPPL')
+      .map((p) => p.text || '')
+      .join('\n')
+      .slice(0, 3000);
+
+    if (bodyText.length > 100) {
+      console.log(`[PMC] Fetched full text for ${pmcid}: ${bodyText.length} chars`);
+      return bodyText;
+    }
+    return null;
+  } catch {
+    return null;
   }
 }

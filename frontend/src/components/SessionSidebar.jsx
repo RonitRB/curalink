@@ -14,6 +14,15 @@ function IconDNA() {
   );
 }
 
+function IconBell() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  );
+}
+
 function IconPlus() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 14, height: 14 }}>
@@ -60,7 +69,7 @@ function IconLogout() {
   );
 }
 
-export default function SessionSidebar({ currentSessionId, onSelectSession, onNewChat, open, isMobile, onShowDashboard, showDashboard }) {
+export default function SessionSidebar({ currentSessionId, onSelectSession, onNewChat, open, isMobile, onShowDashboard, showDashboard, onShowAlerts }) {
   const { user, logout } = useAuth();
   const [sessions, setSessions] = useState([]);
   const [bookmarks, setBookmarks] = useState([]);
@@ -254,10 +263,16 @@ export default function SessionSidebar({ currentSessionId, onSelectSession, onNe
 
       {/* Bottom bar */}
       <div className="sidebar-footer">
-        <button className="sidebar-nav-btn" onClick={onShowDashboard} title="Analytics Dashboard">
-          <IconChart />
-          <span>Dashboard</span>
-        </button>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+          <button className="sidebar-nav-btn" onClick={onShowDashboard} title="Analytics Dashboard" style={{ flex: 1 }}>
+            <IconChart />
+            <span>Dashboard</span>
+          </button>
+          <button className="sidebar-nav-btn" onClick={onShowAlerts} title="Research Alerts" style={{ flex: 1 }}>
+            <IconBell />
+            <span>Alerts</span>
+          </button>
+        </div>
 
         <div className="sidebar-user">
           <div className="sidebar-user-avatar">{userInitial}</div>

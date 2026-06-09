@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PublicationCard from './PublicationCard';
 import TrialCard from './TrialCard';
 import { CopyButton, ExportButton, ShareButton } from './ExportButton';
+import { PublicationTimelineChart, TrialStatusPieChart } from './ResearchCharts';
 import { bookmarksAPI } from '../api';
 
 /* ── Icons ──────────────────────────────────────────────────── */
@@ -220,7 +221,7 @@ export function AIMessage({ message, sessionId, messageIndex, disease }) {
             {/* Action bar */}
             <div className="ai-actions">
               <CopyButton message={message} />
-              <ExportButton />
+              <ExportButton message={message} />
               <ShareButton message={message} />
               {sessionId && (
                 <BookmarkBtn
@@ -297,6 +298,24 @@ export function AIMessage({ message, sessionId, messageIndex, disease }) {
                 <SectionTitle>Personalized Note</SectionTitle>
                 <div className="personalized-note">{llm.personalizedNote}</div>
               </div>
+            )}
+
+            {/* Drug Safety Note */}
+            {llm.drugSafetyNote && (
+              <div className="section-block">
+                <SectionTitle>⚠️ Drug Safety</SectionTitle>
+                <div className="drug-safety-note">{llm.drugSafetyNote}</div>
+              </div>
+            )}
+
+            {/* Data Visualizations */}
+            {(pubs.length >= 3 || trials.length >= 2) && (
+              <CollapsibleSection title="Data Visualizations" defaultOpen={false}>
+                <div className="charts-grid">
+                  <PublicationTimelineChart publications={pubs} />
+                  <TrialStatusPieChart trials={trials} />
+                </div>
+              </CollapsibleSection>
             )}
 
             {/* Key Takeaways */}

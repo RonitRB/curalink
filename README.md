@@ -1,6 +1,16 @@
-# Curalink - AI Medical Research Assistant
+# Curalink - AI Medical Research Assistant (v2.0)
 
 A full-stack MERN application that acts as a health research companion. It understands user context, retrieves high-quality medical research from multiple sources, reasons over it with an open-source LLM (Llama 3.3-70B via Groq), and delivers structured, source-backed answers.
+
+### ✨ What's New in v2.0
+- **Semantic Search (pgvector)**: Understands intent beyond keywords.
+- **Drug Interaction Warnings**: OpenFDA integration for automated safety checks.
+- **PMC Full-Text**: Ingests full text of open-access PubMed Central articles.
+- **Multi-language Support**: Seamless query and response translation across 9 languages.
+- **Document Analysis**: Upload medical documents (PDF) to ground the AI research.
+- **Export & Analytics**: Visual charts (recharts) and PDF export (jsPDF).
+- **Collaborative Sessions**: Generate public read-only links for sharing research.
+- **Research Alerts**: Weekly digests for specific disease queries.
 
 ---
 
@@ -58,14 +68,13 @@ User Query + Patient Context
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React + Vite |
-| Backend | Express.js + Node.js |
-| Database & Auth | Supabase (PostgreSQL) |
+| Frontend | React + Vite, Recharts, html2canvas, jsPDF |
+| Backend | Express.js + Node.js, multer, pdf-parse |
+| Database & Auth | Supabase (PostgreSQL + pgvector) |
 | LLM | Groq API - `llama-3.3-70b-versatile` (open-source model) |
-| Publications | OpenAlex API + PubMed NCBI Entrez API |
-| Clinical Trials | ClinicalTrials.gov API v2 |
-| Frontend Deploy | Vercel |
-| Backend Deploy | Render |
+| Embeddings | HuggingFace Inference API (`all-MiniLM-L6-v2`) |
+| APIs | OpenAlex, PubMed NCBI/PMC, ClinicalTrials.gov, OpenFDA |
+| Deploy | Vercel (Frontend), Render (Backend) |
 
 > **Why Groq + Llama 3.3-70B?** Groq provides free, ultra-fast cloud inference for open-source model weights (Llama 3.3 by Meta). This satisfies the "no Gemini/OpenAI" requirement while delivering best-in-class reasoning quality.
 
@@ -237,6 +246,10 @@ Main research pipeline endpoint.
 ### `GET /api/sessions/:id` — Get session with history
 ### `POST /api/sessions` — Create new session
 ### `DELETE /api/sessions/:id` — Delete session
+### `POST /api/sessions/:id/share` — Create public share link
+### `GET /api/sessions/shared/:token` — Read public shared session
+### `POST /api/upload` — Upload medical PDF documents
+### `GET /api/alerts` — Manage weekly research alerts
 ### `GET /health` — Health check
 
 ---
