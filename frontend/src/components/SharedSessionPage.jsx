@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { sessionsAPI } from '../api';
-import MessageCard from './MessageCard';
+import { UserMessage, AIMessage } from './MessageCard';
 
 export default function SharedSessionPage({ token }) {
   const [session, setSession] = useState(null);
@@ -94,12 +94,11 @@ export default function SharedSessionPage({ token }) {
             This information is AI-generated and not medical advice.
           </div>
           {session.messages.map((msg, index) => (
-            <MessageCard
-              key={index}
-              message={msg}
-              sessionId={null} // null so they can't bookmark
-              index={index}
-            />
+            msg.role === 'user' ? (
+              <UserMessage key={index} content={msg.content} timestamp={msg.timestamp} userName="Anonymous" />
+            ) : (
+              <AIMessage key={index} message={msg} sessionId={null} messageIndex={index} disease={session.disease} />
+            )
           ))}
           <div style={{ height: 40 }} />
         </div>

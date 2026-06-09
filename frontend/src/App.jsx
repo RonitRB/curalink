@@ -112,7 +112,6 @@ export default function App() {
   const [showDashboard, setShowDashboard] = useState(false);
   const [showAlerts, setShowAlerts] = useState(false);
   const [toasts, setToasts] = useState([]);
-  const [route, setRoute] = useState(window.location.hash.slice(1) || '/');
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
