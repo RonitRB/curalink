@@ -85,6 +85,25 @@ export async function fetchPubMedArticles(query, maxResults = 80) {
           parseInt(pubDate?.MedlineDate?.[0]?.substring(0, 4)) ||
           0;
 
+        // DOI — extract from ELocationID or PubmedData ArticleIdList
+        let doi = '';
+        const eLocations = articleData?.ELocationID || [];
+        for (const loc of eLocations) {
+          if (loc?.$?.EIdType === 'doi') {
+            doi = loc?._ || loc || '';
+            break;
+          }
+        }
+        if (!doi) {
+          const articleIds = article?.PubmedData?.[0]?.ArticleIdList?.[0]?.ArticleId || [];
+          for (const aid of articleIds) {
+            if (aid?.$?.IdType === 'doi') {
+              doi = aid?._ || aid || '';
+              break;
+            }
+          }
+        }
+
         if (!title || title === 'Untitled') return null;
 
         return {
@@ -94,8 +113,9 @@ export async function fetchPubMedArticles(query, maxResults = 80) {
           abstract,
           authors,
           year,
+          doi,
           source: 'PubMed',
-          url: pmid ? `https://pubmed.ncbi.nlm.nih.gov/${pmid}/` : null,
+          url: doi ? `https://doi.org/${doi}` : (pmid ? `https://pubmed.ncbi.nlm.nih.gov/${pmid}/` : null),
           relevanceScore: 0,
         };
       } catch {

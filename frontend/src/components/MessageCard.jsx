@@ -248,19 +248,55 @@ export function AIMessage({ message, sessionId, messageIndex, disease }) {
             {llm.researchInsights?.length > 0 && (
               <CollapsibleSection title="Research Insights" count={llm.researchInsights.length}>
                 <div className="insights-list">
-                  {llm.researchInsights.map((insight, i) => (
-                    <div key={i} className="insight-item">
-                      <div className="insight-top">
-                        {insight.citation && (
-                          <span className="insight-citation">[{insight.citation}]</span>
+                  {llm.researchInsights.map((insight, i) => {
+                    // Resolve DOI: prefer insight.doi from LLM, fall back to matching pub
+                    let doiUrl = null;
+                    if (insight.doi && insight.doi !== 'N/A' && !insight.doi.includes('xxxx')) {
+                      doiUrl = `https://doi.org/${insight.doi.replace(/^https?:\/\/doi\.org\//, '')}`;
+                    } else if (insight.citation) {
+                      const match = insight.citation.match(/PUB(\d+)/i);
+                      if (match) {
+                        const pubIndex = parseInt(match[1]) - 1;
+                        const pub = pubs[pubIndex];
+                        if (pub?.doi) {
+                          doiUrl = `https://doi.org/${pub.doi.replace(/^https?:\/\/doi\.org\//, '')}`;
+                        } else if (pub?.url) {
+                          doiUrl = pub.url;
+                        }
+                      }
+                    }
+
+                    return (
+                      <div key={i} className="insight-item">
+                        <div className="insight-top">
+                          {insight.citation && (
+                            doiUrl ? (
+                              <a
+                                href={doiUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="insight-citation insight-citation-link"
+                                title={`View source: ${insight.doi || doiUrl}`}
+                              >
+                                [{insight.citation.replace(/[\[\]]/g, '')}]
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10, marginLeft: 3 }}>
+                                  <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                                  <polyline points="15 3 21 3 21 9" />
+                                  <line x1="10" y1="14" x2="21" y2="3" />
+                                </svg>
+                              </a>
+                            ) : (
+                              <span className="insight-citation">[{insight.citation.replace(/[\[\]]/g, '')}]</span>
+                            )
+                          )}
+                          <span className="insight-text">{insight.insight}</span>
+                        </div>
+                        {insight.detail && (
+                          <div className="insight-detail">{insight.detail}</div>
                         )}
-                        <span className="insight-text">{insight.insight}</span>
                       </div>
-                      {insight.detail && (
-                        <div className="insight-detail">{insight.detail}</div>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CollapsibleSection>
             )}

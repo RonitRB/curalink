@@ -127,4 +127,39 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
+/** POST /api/chat/summarize — lightweight single-publication summarizer */
+router.post('/summarize', auth, async (req, res) => {
+  try {
+    const { title, abstract } = req.body;
+
+    if (!title || typeof title !== 'string') {
+      return res.status(400).json({ error: 'Publication title is required.' });
+    }
+    if (!abstract || typeof abstract !== 'string') {
+      return res.status(400).json({ error: 'Publication abstract is required.' });
+    }
+
+    const { callLLM } = await import('../services/llmService.js');
+
+    const rawSummary = await callLLM(
+      [
+        {
+          role: 'system',
+          content: 'You are a medical research summarizer. Given a publication title and abstract, provide a concise, plain-language summary in 2-3 sentences. Focus on the key findings, methodology, and clinical implications. Do NOT use any markdown formatting. Write in clear, professional language accessible to healthcare professionals.',
+        },
+        {
+          role: 'user',
+          content: `Title: "${title.slice(0, 500)}"\n\nAbstract: "${abstract.slice(0, 1500)}"`,
+        },
+      ],
+      { temperature: 0.3, maxTokens: 300 }
+    );
+
+    res.json({ summary: rawSummary.trim() });
+  } catch (err) {
+    console.error('[Chat Route] Summarize error:', err.message);
+    res.status(500).json({ error: 'Failed to summarize publication.' });
+  }
+});
+
 export default router;

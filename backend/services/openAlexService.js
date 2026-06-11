@@ -57,6 +57,7 @@ export async function fetchOpenAlexArticles(query, maxResults = 100) {
         abstract,
         authors,
         year: work.publication_year || 0,
+        doi: doi || '',
         source: 'OpenAlex',
         url,
         relevanceScore: work.relevance_score || 0,

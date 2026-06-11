@@ -44,6 +44,7 @@ api.interceptors.response.use(
 // ── Chat API ──────────────────────────────────────────────────
 export const chatAPI = {
   sendMessage: (payload) => api.post('/chat', payload),
+  summarize: (payload) => api.post('/chat/summarize', payload),
 };
 
 // ── Sessions API ──────────────────────────────────────────────

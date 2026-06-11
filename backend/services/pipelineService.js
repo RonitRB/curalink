@@ -122,7 +122,7 @@ export async function runResearchPipeline(userMessage, sessionContext) {
   const pubContext = topPublications
     .map((p, i) =>
       `[PUB${i + 1}] Title: "${p.title}"
-  Source: ${p.source} | Year: ${p.year}
+  Source: ${p.source} | Year: ${p.year} | DOI: ${p.doi || 'N/A'}
   Authors: ${p.authors.slice(0, 3).join(', ')}
   Abstract: ${p.abstract || 'No abstract available'}`
     )
@@ -196,6 +196,7 @@ RESPONSE SCHEMA (valid JSON only, no markdown, no extra text):
     {
       "insight": "Key finding or insight",
       "citation": "[PUB1]",
+      "doi": "10.xxxx/xxxxx (the DOI of the cited publication, or empty string if unavailable)",
       "detail": "Supporting explanation from the abstract"
     }
   ],
