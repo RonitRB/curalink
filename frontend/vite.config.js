@@ -13,7 +13,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['jspdf', 'html2canvas', 'recharts']
+    include: ['jspdf', 'html2canvas', 'recharts', 'es-toolkit']
   },
   build: {
     commonjsOptions: {

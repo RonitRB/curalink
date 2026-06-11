@@ -247,10 +247,11 @@ router.delete('/:sessionId', auth, async (req, res) => {
 /** POST /api/sessions/:sessionId/share — generate a share link for a session */
 router.post('/:sessionId/share', auth, async (req, res) => {
   try {
-    const supabase = createSupabaseClient(req.userJwt);
+    const { supabaseAdmin } = await import('../services/supabase.js');
     const shareToken = uuidv4();
 
-    const { data, error } = await supabase
+    // Use admin client to bypass RLS, but still enforce ownership via user_id check
+    const { data, error } = await supabaseAdmin
       .from('sessions')
       .update({ is_public: true, share_token: shareToken, updated_at: new Date().toISOString() })
       .eq('session_id', req.params.sessionId)
@@ -258,12 +259,16 @@ router.post('/:sessionId/share', auth, async (req, res) => {
       .select('session_id, share_token')
       .single();
 
-    if (error && error.code !== 'PGRST116') throw error;
+    if (error) {
+      console.error('[Sessions] Share DB error:', JSON.stringify(error));
+      throw error;
+    }
     if (!data) return res.status(404).json({ error: 'Session not found.' });
 
+    const frontendUrl = process.env.FRONTEND_URL || 'https://curalink-ten.vercel.app';
     res.json({
       shareToken: data.share_token,
-      shareUrl: `${process.env.FRONTEND_URL || ''}/#/shared/${data.share_token}`,
+      shareUrl: `${frontendUrl}/#/shared/${data.share_token}`,
     });
   } catch (err) {
     console.error('[Sessions] Share error:', err.message);
@@ -274,9 +279,9 @@ router.post('/:sessionId/share', auth, async (req, res) => {
 /** DELETE /api/sessions/:sessionId/share — revoke a share link */
 router.delete('/:sessionId/share', auth, async (req, res) => {
   try {
-    const supabase = createSupabaseClient(req.userJwt);
+    const { supabaseAdmin } = await import('../services/supabase.js');
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('sessions')
       .update({ is_public: false, share_token: null, updated_at: new Date().toISOString() })
       .eq('session_id', req.params.sessionId)
