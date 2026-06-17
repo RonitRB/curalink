@@ -12,7 +12,8 @@ export default function ShareSessionBtn({ sessionId }) {
     setError(null);
     try {
       const res = await sessionsAPI.share(sessionId);
-      setShareUrl(res.data.shareUrl);
+      const token = res.data.shareToken;
+      setShareUrl(`${window.location.origin}/#/shared/${token}`);
     } catch (err) {
       console.error('Failed to generate share link:', err);
       setError('Failed to create share link.');
