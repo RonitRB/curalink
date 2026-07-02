@@ -1,4 +1,4 @@
-# Curalink - AI Medical Research Assistant (v2.0)
+# Curalink - AI Medical Research Agent (v2.0)
 
 A full-stack MERN application that acts as a health research companion. It understands user context, retrieves high-quality medical research from multiple sources, reasons over it with an open-source LLM (Llama 3.3-70B via Groq), and delivers structured, source-backed answers.
 
